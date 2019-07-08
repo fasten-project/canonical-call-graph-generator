@@ -4,7 +4,6 @@
 Convert CScout call-graph edge list to FASTEN JSON Call-Graph Format.
 Dependencies: https://www.debian.org/doc/debian-policy/ch-relationships.html
 """
-import sys
 import os
 import re
 import csv
