@@ -1,0 +1,5 @@
+public:/build/anna-xjzj1e/anna-1.58/anna.c:main public:/usr/include/stdlib.h:getenv
+public:/build/anna-xjzj1e/anna-1.58/retriever.c:set_retriever static:/usr/include/cdebconf/debconfclient.h:debconf_set
+static:/usr/local/include/cscout/csmake-pre-defs.h:__attribute__ static:/usr/include/x86_64-linux-gnu/bits/sigset.h:__sigmask
+public:/build/anna-xjzj1e/anna-1.58/anna.c:main public:/usr/include/debian-installer/system/packages.h:di_system_package_check_subarchitecture
+public:/build/anna-xjzj1e/anna-1.58/anna.c:main static:/usr/include/debian-installer/system/packages.h:di_system_packages_status_read_file
