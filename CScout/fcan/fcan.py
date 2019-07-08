@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
 """
 Convert CScout call-graph edge list to FASTEN JSON Call-Graph Format.
