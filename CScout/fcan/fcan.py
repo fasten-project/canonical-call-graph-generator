@@ -10,6 +10,7 @@ import re
 import csv
 import json
 import logging
+import argparse
 import subprocess as sp
 from pydpkg import Dpkg, Dsc
 
@@ -195,7 +196,7 @@ class CScout_Canonicalizer:
         can.canonicalize()
     """
     def __init__(self, directory, forge="apt", console_logging=True,
-                 file_logging=False):
+                 file_logging=False, logging_level='DEBUG'):
         """CScout_Canonicalizer constructor.
 
         Args:
@@ -221,7 +222,7 @@ class CScout_Canonicalizer:
         Raise:
             CanonicalizationError: if .txt or .deb or .dsc files not found.
         """
-        self._set_logger(console_logging, file_logging)
+        self._set_logger(console_logging, file_logging, logging_level)
 
         self.directory = directory
 
@@ -289,7 +290,7 @@ class CScout_Canonicalizer:
         self.gen_can_cgraph()
         self.save(self.directory + '/can_cgraph.json')
 
-    def _set_logger(self, console_logging, file_logging):
+    def _set_logger(self, console_logging, file_logging, logging_level):
         self.logger = logging.getLogger('CScout canonicalizer')
         self.logger.setLevel(logging.DEBUG)
         self.logger.propagate = False
@@ -298,13 +299,13 @@ class CScout_Canonicalizer:
         if console_logging:
             # create console handler
             ch = logging.StreamHandler()
-            ch.setLevel(logging.DEBUG)
+            ch.setLevel(logging_level)
             ch.setFormatter(formatter)
             self.logger.addHandler(ch)
         if file_logging:
             # create file handler
-            fh = logging.FileHandler(self.directory + '/debug.log')
-            fh.setLevel(logging.DEBUG)
+            fh = logging.FileHandler(self.directory + '/fcan.log')
+            fh.setLevel(logging_level)
             fh.setFormatter(formatter)
             self.logger.addHandler(fh)
 
@@ -363,10 +364,29 @@ class CScout_Canonicalizer:
                 'product': orph})
 
 
-# TODO add argparse interface
 def main():
-    directory = sys.argv[1]
-    can = CScout_Canonicalizer(directory)
+    parser = argparse.ArgumentParser(description=(
+        'Generate FASTEN Canonical Call Graphs'))
+    parser.add_argument('directory', help=(
+        'a directory with the Call Graph, and description files'))
+    parser.add_argument('-f', '--forge', default='apt', help=(
+        'forge of the analyzed project. For example, it could be apt, '
+        'or GitHub'))
+    parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
+                        help='print logs to the console')
+    parser.add_argument('-L', '--file-logging', dest='file_logging',
+                        action='store_true',
+                        help='save logs to a file')
+    parser.add_argument('-l', '--logging-level', dest='logging_level',
+                        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO',
+                                 'DEBUG'],
+                        default='DEBUG', help='logging level for logs')
+    args = parser.parse_args()
+    can = CScout_Canonicalizer(args.directory,
+                               forge=args.forge,
+                               console_logging=args.verbose,
+                               file_logging=args.file_logging,
+                               logging_level=args.logging_level)
     can.canonicalize()
 
 
