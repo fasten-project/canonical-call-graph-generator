@@ -406,10 +406,11 @@ class CScout_Canonicalizer:
     def _add_orphan_dependenies(self):
         for orph in self.orphan_deps:
             # TODO find a way to detect the forge.
+            # TODO Handle special cases like libc
             self.dependencies.append({
                 'architectures': '',
                 'constraints': '',
-                'forge': '',
+                'forge': 'UNDEFINED',
                 'product': orph})
 
 
