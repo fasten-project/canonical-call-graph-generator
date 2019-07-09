@@ -87,7 +87,7 @@ def test_parse_files():
     can = get_canonicalizer('anna-1.58')
     can.parse_files()
     assert can.product == 'anna', "Should be anna"
-    assert can.source == 'anna', "Should be anna"
+    assert can.binary == 'anna', "Should be anna"
     assert can.version == '1.58', "Should be 1.58"
     for dep in dependencies:
         assert dep in can.dependencies

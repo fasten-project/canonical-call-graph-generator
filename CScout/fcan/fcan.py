@@ -245,8 +245,10 @@ class CScout_Canonicalizer:
             dsc: dsc filename.
             forge: Product's forge.
             product: Product's name.
-            source: Source's name.
+            binary: String that contains list of binaries.
             version: Product's version (string).
+            package_list: String that contains information about generated
+                packages
             dependencies: Product's dependencies (dict or list).
             can_graph: Canonicalized Call-Graph.
             orphan_deps: Dependencies that are not declared in deb or dsc.
@@ -274,8 +276,9 @@ class CScout_Canonicalizer:
 
         self.forge = forge
         self.product = ''
-        self.source = ''
+        self.binary = ''
         self.version = ''
+        self.package_list = ''
         # list of dicts
         self.dependencies = list()
         self.can_graph = list()
@@ -289,9 +292,11 @@ class CScout_Canonicalizer:
     def parse_files(self):
         dsc = Dsc(self.dsc)
         depends = set(safe_split(dsc.headers['Build-Depends']))
-        self.product = dsc.headers['Binary']
-        self.source = dsc.headers['Source']
+        self.product = dsc.headers['Source']
+        self.binary = dsc.headers['Binary']
         self.version = dsc.headers['Version']
+        self.package_list = dsc.headers['Package-List']
+        print(self.package_list)
         for deb in self.debs:
             dpkg = Dpkg(deb)
             depends.update(safe_split(dpkg.headers['Depends']))
