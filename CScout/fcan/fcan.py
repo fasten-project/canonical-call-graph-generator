@@ -15,7 +15,8 @@ from pydpkg import Dpkg, Dsc
 
 
 class CanonicalizationError(Exception):
-    pass
+    """Custom exception for Canonicalizers.
+    """
 
 
 def safe_split(string, sep=','):
@@ -124,16 +125,15 @@ def get_product_names(dependencies):
     return names
 
 
-def find_nth(string, sub, n):
+def find_nth(string, sub, nth):
     """Find index of nth substring in a string.
 
     Return:
         index of nth substring or -1.
     """
-    if (n == 1):
+    if nth == 1:
         return string.find(sub)
-    else:
-        return string.find(sub, find_nth(string, sub, n - 1) + 1)
+    return string.find(sub, find_nth(string, sub, nth - 1) + 1)
 
 
 def find_file(directory, extensions):
@@ -249,22 +249,22 @@ class CScout_Canonicalizer:
         self.rules = ['UNDEF', 'CScout']
 
     def parse_files(self):
-        ds = Dsc(self.dsc)
-        depends = set(safe_split(ds.headers['Build-Depends']))
-        self.product = ds.headers['Binary']
-        self.source = ds.headers['Source']
-        self.version = ds.headers['Version']
+        dsc = Dsc(self.dsc)
+        depends = set(safe_split(dsc.headers['Build-Depends']))
+        self.product = dsc.headers['Binary']
+        self.source = dsc.headers['Source']
+        self.version = dsc.headers['Version']
         for deb in self.debs:
-            dp = Dpkg(deb)
-            depends.update(safe_split(dp.headers['Depends']))
+            dpkg = Dpkg(deb)
+            depends.update(safe_split(dpkg.headers['Depends']))
         # Set forge as apt because they declared as Debian packages
         self.dependencies = [parse_dependency(dep, 'apt')
                              for dep in depends]
 
     def gen_can_cgraph(self):
         """Generate canonical Call-Graph."""
-        with open(self.cgraph, 'r') as f:
-            edges = csv.reader(f, delimiter=' ')
+        with open(self.cgraph, 'r') as fdr:
+            edges = csv.reader(fdr, delimiter=' ')
             for edge in edges:
                 can_edge = self._parse_edge(edge)
                 if any(r in can_edge[0] for r in self.rules) or \
@@ -281,8 +281,8 @@ class CScout_Canonicalizer:
             'depset': self.dependencies,
             'graph': self.can_graph
         }
-        with open(filename, 'w') as f:
-            json.dump(data, f)
+        with open(filename, 'w') as fdr:
+            json.dump(data, fdr)
 
     def canonicalize(self):
         self.parse_files()
@@ -297,16 +297,16 @@ class CScout_Canonicalizer:
         formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
         if console_logging:
             # create console handler
-            ch = logging.StreamHandler()
-            ch.setLevel(logging_level)
-            ch.setFormatter(formatter)
-            self.logger.addHandler(ch)
+            cons_h = logging.StreamHandler()
+            cons_h.setLevel(logging_level)
+            cons_h.setFormatter(formatter)
+            self.logger.addHandler(cons_h)
         if file_logging:
             # create file handler
-            fh = logging.FileHandler(self.directory + '/fcan.log')
-            fh.setLevel(logging_level)
-            fh.setFormatter(formatter)
-            self.logger.addHandler(fh)
+            file_h = logging.FileHandler(self.directory + '/fcan.log')
+            file_h.setLevel(logging_level)
+            file_h.setFormatter(formatter)
+            self.logger.addHandler(file_h)
 
     def _parse_edge(self, edge):
         node1 = self._get_uri(edge[0])
@@ -345,12 +345,12 @@ class CScout_Canonicalizer:
         stdout, status = find_product(path)
         if status == 0:
             return stdout.decode(encoding='utf-8').split(':')[0]
-        elif re.match(r'^/build/[^/]*/' + self.product + '[^/]*/.*$', path):
-            self.logger.debug("product match: " + path)
+        if re.match(r'^/build/[^/]*/' + self.product + '[^/]*/.*$', path):
+            self.logger.debug("product match: %s", path)
             return self.product
-        elif path.startswith('/usr/local/include/cscout'):
+        if path.startswith('/usr/local/include/cscout'):
             return "CScout"
-        self.logger.debug("UNDEF match: " + path)
+        self.logger.debug("UNDEF match: %s", path)
         return "UNDEF"
 
     def _add_orphan_dependenies(self):
@@ -364,6 +364,10 @@ class CScout_Canonicalizer:
 
 
 def main():
+    """Main function of fcan.py.
+
+    Parse command line arguments and execute the Canonicalizer.
+    """
     parser = argparse.ArgumentParser(description=(
         'Generate FASTEN Canonical Call Graphs'))
     parser.add_argument('directory', help=(
