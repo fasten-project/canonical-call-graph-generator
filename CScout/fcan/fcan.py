@@ -359,10 +359,10 @@ class CScout_Canonicalizer:
             if self.custom_deps is not None and \
                product in self.custom_deps.keys():
                 self.dependencies.append({
+                    "forge": self.custom_deps[product]['forge'],
                     "product": product,
                     "constraints": self.custom_deps[product]['constraints'],
-                    "architecture": self.custom_deps[product]['architecture'],
-                    "forge": self.custom_deps[product]['forge']
+                    "architecture": self.custom_deps[product]['architecture']
                 })
             elif product != self.product:
                 self.orphan_deps.add(product)
@@ -408,10 +408,10 @@ class CScout_Canonicalizer:
             # TODO find a way to detect the forge.
             # TODO Handle special cases like libc
             self.dependencies.append({
-                'architectures': '',
-                'constraints': '',
                 'forge': 'UNDEFINED',
-                'product': orph})
+                'product': orph,
+                'architectures': '',
+                'constraints': ''})
 
 
 def main():
