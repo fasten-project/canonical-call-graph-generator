@@ -1,52 +1,52 @@
 {
     "product": "anna",
     "version": "1.58",
-    "forge": "apt",
+    "forge": "debian",
     "depset": [
         {
-            "forge": "apt",
+            "forge": "debian",
             "product": "libdebian-installer4-dev",
             "constraints": ">= 0.109",
             "architectures": ""
         },
         {
-            "forge": "apt",
+            "forge": "debian",
             "product": "debhelper",
             "constraints": ">= 9",
             "architectures": ""
         },
         {
-            "forge": "apt",
+            "forge": "debian",
             "product": "libdebconfclient0-udeb",
             "constraints": "",
             "architectures": ""
         },
         {
-            "forge": "apt",
+            "forge": "debian",
             "product": "cdebconf-udeb",
             "constraints": "",
             "architectures": ""
         },
         {
-            "forge": "apt",
+            "forge": "debian",
             "product": "libc6-udeb",
             "constraints": ">= 2.24",
             "architectures": ""
         },
         {
-            "forge": "apt",
+            "forge": "debian",
             "product": "dpkg-dev",
             "constraints": ">= 1.15.7",
             "architectures": ""
         },
         {
-            "forge": "apt",
+            "forge": "debian",
             "product": "libdebconfclient0-dev",
             "constraints": ">= 0.46",
             "architectures": ""
         },
         {
-            "forge": "apt",
+            "forge": "debian",
             "product": "libdebian-installer4-udeb",
             "constraints": ">= 0.110",
             "architectures": ""

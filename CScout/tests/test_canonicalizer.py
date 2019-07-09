@@ -43,21 +43,21 @@ def get_canonicalizer_with_custom_deps(package, deps):
                                 custom_deps=custom_deps)
 
 
-dependencies = [{'forge': 'apt', 'product': 'libdebian-installer4-dev',
+dependencies = [{'forge': 'debian', 'product': 'libdebian-installer4-dev',
                  'constraints': '>= 0.109', 'architectures': ''},
-                {'forge': 'apt', 'product': 'libdebian-installer4-udeb',
+                {'forge': 'debian', 'product': 'libdebian-installer4-udeb',
                  'constraints': '>= 0.110', 'architectures': ''},
-                {'forge': 'apt', 'product': 'dpkg-dev',
+                {'forge': 'debian', 'product': 'dpkg-dev',
                  'constraints': '>= 1.15.7', 'architectures': ''},
-                {'forge': 'apt', 'product': 'libdebconfclient0-udeb',
+                {'forge': 'debian', 'product': 'libdebconfclient0-udeb',
                  'constraints': '', 'architectures': ''},
-                {'forge': 'apt', 'product': 'libc6-udeb',
+                {'forge': 'debian', 'product': 'libc6-udeb',
                  'constraints': '>= 2.24', 'architectures': ''},
-                {'forge': 'apt', 'product': 'libdebconfclient0-dev',
+                {'forge': 'debian', 'product': 'libdebconfclient0-dev',
                  'constraints': '>= 0.46', 'architectures': ''},
-                {'forge': 'apt', 'product': 'cdebconf-udeb',
+                {'forge': 'debian', 'product': 'cdebconf-udeb',
                  'constraints': '', 'architectures': ''},
-                {'forge': 'apt', 'product': 'debhelper',
+                {'forge': 'debian', 'product': 'debhelper',
                  'constraints': '>= 9', 'architectures': ''}]
 
 
@@ -120,7 +120,7 @@ def test_save(mock_find_product):
         assert list(node) in res['graph']
     assert res['product'] == 'anna'
     assert res['version'] == '1.58'
-    assert res['forge'] == 'apt'
+    assert res['forge'] == 'debian'
     os.remove(filename)
 
 
@@ -145,7 +145,7 @@ def test_canonicalize(mock_find_product):
         assert list(node) in res['graph']
     assert res['product'] == 'anna'
     assert res['version'] == '1.58'
-    assert res['forge'] == 'apt'
+    assert res['forge'] == 'debian'
     os.remove(filename)
 
 

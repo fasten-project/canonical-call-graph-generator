@@ -86,18 +86,18 @@ def parse_dependency(dep, forge):
            return:
                 {'architectures': '',
                  'constraints': '>= 9',
-                 'forge': 'apt',
+                 'forge': 'debian',
                  'product': 'debhelper'}
 
         2) input: "libdebian-installer4-dev [amd64] | libdebconfclient-dev"
            return:
                 [{'architectures': 'amd64',
                   'constraints': '',
-                  'forge': 'apt',
+                  'forge': 'debian',
                   'product': 'libdebian-installer4-dev'},
                  {'architectures': '',
                   'constraints': '',
-                  'forge': 'apt',
+                  'forge': 'debian',
                   'product': 'libdebconfclient-dev'}]
     """
     if '|' in dep:
@@ -226,7 +226,7 @@ class CScout_Canonicalizer:
         can = CScout_Canonicalizer('directory')
         can.canonicalize()
     """
-    def __init__(self, directory, forge="apt", console_logging=True,
+    def __init__(self, directory, forge="debian", console_logging=True,
                  file_logging=False, logging_level='DEBUG', custom_deps=None):
         """CScout_Canonicalizer constructor.
 
@@ -304,14 +304,13 @@ class CScout_Canonicalizer:
         self.binary = dsc.headers['Binary']
         self.version = dsc.headers['Version']
         self.package_list = dsc.headers['Package-List']
-        print(self.package_list)
         for deb in self.debs:
             dpkg = Dpkg(deb)
             depends.update(safe_split(dpkg.headers['Depends']))
-        # Set forge as apt because they declared as Debian packages
-        apt_dependencies = [parse_dependency(dep, 'apt')
-                            for dep in depends]
-        self.dependencies.extend(apt_dependencies)
+        # Set forge as debian because they declared as Debian packages
+        debian_dependencies = [parse_dependency(dep, 'debian')
+                               for dep in depends]
+        self.dependencies.extend(debian_dependencies)
 
     def gen_can_cgraph(self):
         """Generate canonical Call-Graph."""
@@ -428,8 +427,8 @@ def main():
         'Generate FASTEN Canonical Call Graphs'))
     parser.add_argument('directory', help=(
         'a directory with the Call Graph, and description files'))
-    parser.add_argument('-f', '--forge', default='apt', help=(
-        'forge of the analyzed project. For example, it could be apt, '
+    parser.add_argument('-f', '--forge', default='debian', help=(
+        'forge of the analyzed project. For example, it could be debian, '
         'or GitHub'))
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
                         help='print logs to the console')

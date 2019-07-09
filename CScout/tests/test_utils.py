@@ -33,19 +33,19 @@ def test_extract_text():
         "Should return ('', 'Hello world')"
 
 
-simple_product = {'architectures': "", 'constraints': ">= 9", 'forge': "apt",
-                  'product': "debhelper"}
+simple_product = {'architectures': "", 'constraints': ">= 9",
+                  'forge': "debian", 'product': "debhelper"}
 complex_product = [{'architectures': "amd64", 'constraints': "",
-                    'forge': "apt", 'product': "libdebian-installer4-dev"},
-                   {'architectures': "", 'constraints': "", 'forge': "apt",
+                    'forge': "debian", 'product': "libdebian-installer4-dev"},
+                   {'architectures': "", 'constraints': "", 'forge': "debian",
                     'product': "libdebconfclient-dev"}]
 
 
 def test_parse_dependency():
-    assert parse_dependency("debhelper (>= 9)", "apt") == simple_product
+    assert parse_dependency("debhelper (>= 9)", "debian") == simple_product
     assert parse_dependency(
-        "libdebian-installer4-dev [amd64] | libdebconfclient-dev", "apt") == \
-        complex_product
+        "libdebian-installer4-dev [amd64] | libdebconfclient-dev",
+        "debian") == complex_product
 
 
 def test_get_product_names():
