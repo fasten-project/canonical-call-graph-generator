@@ -369,10 +369,10 @@ class CScout_Canonicalizer:
         return self._uri_generator(product, namespace, function)
 
     def _uri_generator(self, product, namespace, function):
-        uri = ''
+        forge_product_version = ''
         if product != self.product:
-            uri += '/' + product
-        return '{}/{}/{}'.format(uri, namespace, function)
+            forge_product_version += '//' + product
+        return '{}/{}/{}'.format(forge_product_version, namespace, function)
 
     def _parse_node(self, node):
         scope, path, entity = node.split(':')
@@ -434,12 +434,15 @@ def main():
                         choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO',
                                  'DEBUG'],
                         default='DEBUG', help='logging level for logs')
+    parser.add_argument('-c', '--custom-deps', dest='custom_deps',
+                        default=None, help='custom user defined dependencies')
     args = parser.parse_args()
     can = CScout_Canonicalizer(args.directory,
                                forge=args.forge,
                                console_logging=args.verbose,
                                file_logging=args.file_logging,
-                               logging_level=args.logging_level)
+                               logging_level=args.logging_level,
+                               custom_deps=args.custom_deps)
     can.canonicalize()
 
 
