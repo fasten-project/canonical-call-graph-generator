@@ -126,7 +126,7 @@ def test_save(mock_find_product):
 
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
 def test_canonicalize(mock_find_product):
-    can = get_canonicalizer('anna-1.58')
+    can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json')
     can.canonicalize()
     directory = get_directory('anna-1.58')
     filename = directory + '/' + 'can_cgraph.json'
@@ -135,9 +135,13 @@ def test_canonicalize(mock_find_product):
     final_dependencies = copy.deepcopy(dependencies)
     final_dependencies.append({"architectures": "", "constraints": "",
                                "forge": "UNDEFINED", "product": "libc6-dev"})
+    final_dependencies.append({'product': "my_dep", 'forge': "github",
+                               'constraints': "", 'architecture': ""})
+    final_can_graph = copy.deepcopy(can_graph)
+    final_can_graph.append(('/C/main()', '//my_dep/C/sum()'))
     for dep in final_dependencies:
         assert dep in res['depset']
-    for node in can_graph:
+    for node in final_can_graph:
         assert list(node) in res['graph']
     assert res['product'] == 'anna'
     assert res['version'] == '1.58'
@@ -251,7 +255,7 @@ def test_get_uri(mock_find_product):
 
 
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
-def test_parse_edge(mock_find_produc):
+def test_parse_edge(mock_find_product):
     can = get_canonicalizer('anna-1.58')
     can.parse_files()
     edge = [
