@@ -269,19 +269,27 @@ class CScout_Canonicalizer:
         if self.dsc == -1:
             raise CanonicalizationError(".dsc file not found")
 
-        self.custom_deps = None
-        if custom_deps is not None:
-            with open(custom_deps, 'r') as fdr:
-                self.custom_deps = json.load(fdr)
-
         self.forge = forge
         self.product = ''
         self.binary = ''
         self.version = ''
         self.package_list = ''
+        self.can_graph = list()
+
         # list of dicts
         self.dependencies = list()
-        self.can_graph = list()
+        # dict of dicts
+        self.custom_deps = None
+        if custom_deps is not None:
+            with open(custom_deps, 'r') as fdr:
+                self.custom_deps = json.load(fdr)
+            for key, value in self.custom_deps.items():
+                self.dependencies.append({
+                    "forge": value['forge'],
+                    "product": key,
+                    "constraints": value['constraints'],
+                    "architecture": value['architecture']
+                })
 
         self.orphan_deps = set()
 
@@ -301,8 +309,9 @@ class CScout_Canonicalizer:
             dpkg = Dpkg(deb)
             depends.update(safe_split(dpkg.headers['Depends']))
         # Set forge as apt because they declared as Debian packages
-        self.dependencies = [parse_dependency(dep, 'apt')
-                             for dep in depends]
+        apt_dependencies = [parse_dependency(dep, 'apt')
+                            for dep in depends]
+        self.dependencies.extend(apt_dependencies)
 
     def gen_can_cgraph(self):
         """Generate canonical Call-Graph."""
@@ -357,19 +366,10 @@ class CScout_Canonicalizer:
         return (node1, node2)
 
     def _get_uri(self, node):
-        # TODO If we have forge we can add it to have complete URIs.
         product, namespace, function = self._parse_node(node)
         if product not in get_product_names(self.dependencies) and \
            product not in self.rules:
-            if self.custom_deps is not None and \
-               product in self.custom_deps.keys():
-                self.dependencies.append({
-                    "forge": self.custom_deps[product]['forge'],
-                    "product": product,
-                    "constraints": self.custom_deps[product]['constraints'],
-                    "architecture": self.custom_deps[product]['architecture']
-                })
-            elif product != self.product:
+            if product != self.product:
                 self.orphan_deps.add(product)
         return self._uri_generator(product, namespace, function)
 
