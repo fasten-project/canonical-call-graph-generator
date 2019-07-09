@@ -182,6 +182,38 @@ def find_product(path):
     return stdout, status
 
 
+def check_custom_deps(path, deps):
+    """Find if the path match any of the regexes from deps
+
+    Args:
+        path: the path of a file.
+        deps: a dict of dicts, the dicts must contain a key called regex which
+            must contain a list with regexes.
+    Returns:
+        key of matched dependency or -1.
+
+    Example:
+        input:
+            /usr/local/include/my_dep/utils.h,
+            {
+                "my_dep": {
+                    "forge": "github",
+                    "constraints": "",
+                    "architecture": "",
+                    "regex": [
+                        "^/usr/local/include/my_dep/.*"
+                    ]
+                }
+            }
+
+    """
+    for key, value in deps.items():
+        for regex in value['regex']:
+            if re.match(r'' + regex, path):
+                return key
+    return -1
+
+
 class CScout_Canonicalizer:
     """A canonicalizer that transforms CScout Call-Graphs to FASTEN Call-Graphs
 
@@ -195,7 +227,7 @@ class CScout_Canonicalizer:
         can.canonicalize()
     """
     def __init__(self, directory, forge="apt", console_logging=True,
-                 file_logging=False, logging_level='DEBUG'):
+                 file_logging=False, logging_level='DEBUG', custom_deps=None):
         """CScout_Canonicalizer constructor.
 
         Args:
@@ -235,11 +267,17 @@ class CScout_Canonicalizer:
         if self.dsc == -1:
             raise CanonicalizationError(".dsc file not found")
 
+        self.custom_deps = None
+        if custom_deps is not None:
+            with open(custom_deps, 'r') as fdr:
+                self.custom_deps = json.load(fdr)
+
         self.forge = forge
         self.product = ''
         self.source = ''
         self.version = ''
-        self.dependencies = ''
+        # list of dicts
+        self.dependencies = list()
         self.can_graph = list()
 
         self.orphan_deps = set()
@@ -316,10 +354,18 @@ class CScout_Canonicalizer:
     def _get_uri(self, node):
         # TODO If we have forge we can add it to have complete URIs.
         product, namespace, function = self._parse_node(node)
-        if product not in get_product_names(self.dependencies) \
-                and product not in self.rules \
-                and product != self.product:
-            self.orphan_deps.add(product)
+        if product not in get_product_names(self.dependencies) and \
+           product not in self.rules:
+            if self.custom_deps is not None and \
+               product in self.custom_deps.keys():
+                self.dependencies.append({
+                    "product": product,
+                    "constraints": self.custom_deps[product]['constraints'],
+                    "architecture": self.custom_deps[product]['architecture'],
+                    "forge": self.custom_deps[product]['forge']
+                })
+            elif product != self.product:
+                self.orphan_deps.add(product)
         return self._uri_generator(product, namespace, function)
 
     def _uri_generator(self, product, namespace, function):
@@ -348,6 +394,10 @@ class CScout_Canonicalizer:
         if re.match(r'^/build/[^/]*/' + self.product + '[^/]*/.*$', path):
             self.logger.debug("product match: %s", path)
             return self.product
+        if self.custom_deps is not None:
+            product = check_custom_deps(path, self.custom_deps)
+            if product != -1:
+                return product
         if path.startswith('/usr/local/include/cscout'):
             return "CScout"
         self.logger.debug("UNDEF match: %s", path)

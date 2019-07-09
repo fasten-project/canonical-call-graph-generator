@@ -162,6 +162,14 @@ def test_find_product(mock_find_product):
     # Test 3
     path3 = '/usr/include/debian-installer/exec.h'
     assert can._find_product(path3) == 'libdebian-installer4-dev'
+    # Test 4
+    directory = get_directory('anna-1.58')
+    can = CScout_Canonicalizer(directory, console_logging=False,
+                               custom_deps='tests/data/custom_deps.json')
+    path3 = '/usr/include/debian-installer/exec.h'
+    assert can._find_product(path3) == 'libdebian-installer4-dev'
+    path4 = '/usr/local/include/my_dep/utils.h'
+    assert can._find_product(path4) == 'my_dep'
 
 
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
@@ -227,6 +235,16 @@ def test_get_uri(mock_find_product):
     res5 = '/libc6-dev/C/getenv()'
     assert can._get_uri(node5) == res5
     assert 'libc6-dev' in can.orphan_deps
+    # Test 6
+    directory = get_directory('anna-1.58')
+    can = CScout_Canonicalizer(directory, console_logging=False,
+                               custom_deps='tests/data/custom_deps.json')
+    my_dep = {'product': "my_dep", 'forge': "github", 'constraints': "",
+              'architecture': ""}
+    node6 = 'public:/usr/local/include/my_dep/utils.h:sum'
+    res6 = '/my_dep/C/sum()'
+    assert can._get_uri(node6) == res6
+    assert my_dep in can.dependencies
 
 
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)

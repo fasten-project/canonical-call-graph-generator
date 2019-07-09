@@ -1,0 +1,10 @@
+{
+    "my_dep": {
+        "forge": "github",
+        "constraints": "",
+        "architecture": "",
+        "regex": [
+            "^/usr/local/include/my_dep/.*"
+        ]
+    }
+}

@@ -1,6 +1,6 @@
 import os
 from fcan.fcan import safe_split, extract_text, parse_dependency, find_nth,\
-        get_product_names, find_file, find_files
+        get_product_names, find_file, find_files, check_custom_deps
 
 
 def test_safe_split():
@@ -91,3 +91,19 @@ def test_find_files():
         "Should return a list with one file"
     assert len(find_files(dirs_path + 'package3', ('.deb', '.udeb'))) == 3,\
         "Should return a list with 3 files"
+
+
+def test_check_custom_deps():
+    custom_deps = {
+                "my_dep": {
+                    "forge": "github",
+                    "constraints": "",
+                    "architecture": "",
+                    "regex": [
+                        "^/usr/local/include/my_dep/.*"
+                    ]
+                }
+    }
+    path = "/usr/local/include/my_dep/utils.h"
+    assert check_custom_deps(path, custom_deps) == 'my_dep'
+    assert check_custom_deps('/random/path', custom_deps) == -1
