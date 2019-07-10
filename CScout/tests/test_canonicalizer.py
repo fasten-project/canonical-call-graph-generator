@@ -36,11 +36,14 @@ def get_canonicalizer(package):
     return CScout_Canonicalizer(directory, console_logging=False)
 
 
-def get_canonicalizer_with_custom_deps(package, deps):
+def get_canonicalizer_with_custom_deps(package, deps, parse=False):
     directory = get_directory(package)
     custom_deps = get_directory(deps)
-    return CScout_Canonicalizer(directory, console_logging=False,
-                                custom_deps=custom_deps)
+    can = CScout_Canonicalizer(directory, console_logging=False,
+                               custom_deps=custom_deps)
+    if parse:
+        can.parse_files()
+    return can
 
 
 dependencies = [{'forge': 'debian', 'product': 'libdebian-installer4-dev',
@@ -174,7 +177,8 @@ def test_find_product(mock_find_product):
     path3 = '/usr/include/debian-installer/exec.h'
     assert can._find_product(path3) == 'libdebian-installer4-dev'
     # Test 4
-    can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json')
+    can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json',
+                                             True)
     path3 = '/usr/include/debian-installer/exec.h'
     assert can._find_product(path3) == 'libdebian-installer4-dev'
     path4 = '/usr/local/include/my_dep/utils.h'
@@ -245,7 +249,8 @@ def test_get_uri(mock_find_product):
     assert can._get_uri(node5) == res5
     assert 'libc6-dev' in can.orphan_deps
     # Test 6
-    can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json')
+    can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json',
+                                             True)
     my_dep = {'product': "my_dep", 'forge': "github", 'constraints': "",
               'architecture': ""}
     node6 = 'public:/usr/local/include/my_dep/utils.h:sum'

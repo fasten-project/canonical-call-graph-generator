@@ -75,7 +75,7 @@ def test_find_nth():
 
 def test_find_file():
     dirs_path = '{}/{}/{}/'.format(os.path.curdir, 'tests', 'data')
-    assert find_file(dirs_path + 'package1', ('.txt')) == -1,\
+    assert find_file(dirs_path + 'package1', ('.txt')) is None,\
         "Should return -1"
     res1 = find_file(dirs_path + 'package2', ('.txt')).endswith('.txt')
     res2 = find_file(dirs_path + 'package2', ('.dsc')).endswith('.dsc')
@@ -106,4 +106,4 @@ def test_check_custom_deps():
     }
     path = "/usr/local/include/my_dep/utils.h"
     assert check_custom_deps(path, custom_deps) == 'my_dep'
-    assert check_custom_deps('/random/path', custom_deps) == -1
+    assert check_custom_deps('/random/path', custom_deps) is None

@@ -120,8 +120,7 @@ def get_product_names(dependencies):
         if isinstance(dep, dict):
             names.add(dep['product'])
         elif isinstance(dep, list):
-            for alt in dep:
-                names.add(alt['product'])
+            names.update([alt['product'] for alt in dep])
     return names
 
 
@@ -148,7 +147,7 @@ def find_file(directory, extensions):
     for filename in os.listdir(directory):
         if filename.endswith(extensions):
             return "{}/{}".format(directory, filename)
-    return -1
+    return None
 
 
 def find_files(directory, extensions):
@@ -211,7 +210,7 @@ def check_custom_deps(path, deps):
         for regex in value['regex']:
             if re.match(r'' + regex, path):
                 return key
-    return -1
+    return None
 
 
 class CScout_Canonicalizer:
@@ -260,24 +259,23 @@ class CScout_Canonicalizer:
         self.directory = directory
 
         self.cgraph = find_file(self.directory, '.txt')
-        if self.cgraph == -1:
+        if self.cgraph is None:
             raise CanonicalizationError(".txt file not found")
         self.debs = find_files(self.directory, ('.deb', '.udeb'))
-        if self.debs == -1:
+        if self.debs is None:
             raise CanonicalizationError(".deb or .udeb file not found")
         self.dsc = find_file(self.directory, ('.dsc'))
-        if self.dsc == -1:
+        if self.dsc is None:
             raise CanonicalizationError(".dsc file not found")
 
         self.forge = forge
-        self.product = ''
-        self.binary = ''
-        self.version = ''
-        self.package_list = ''
-        self.can_graph = list()
+        self.product = None
+        self.binary = None
+        self.version = None
+        self.package_list = None
+        self.can_graph = []
 
-        # list of dicts
-        self.dependencies = list()
+        self.dependencies = []
         # dict of dicts
         self.custom_deps = None
         if custom_deps is not None:
@@ -366,8 +364,8 @@ class CScout_Canonicalizer:
 
     def _get_uri(self, node):
         product, namespace, function = self._parse_node(node)
-        if product not in get_product_names(self.dependencies) and \
-           product not in self.rules:
+        if (product not in get_product_names(self.dependencies) and
+                product not in self.rules):
             if product != self.product:
                 self.orphan_deps.add(product)
         return self._uri_generator(product, namespace, function)
@@ -400,7 +398,7 @@ class CScout_Canonicalizer:
             return self.product
         if self.custom_deps is not None:
             product = check_custom_deps(path, self.custom_deps)
-            if product != -1:
+            if product is not None:
                 return product
         if path.startswith('/usr/local/include/cscout'):
             return "CScout"
