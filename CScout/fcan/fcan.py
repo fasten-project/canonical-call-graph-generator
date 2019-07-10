@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 """
-Convert CScout call-graph edge list to FASTEN JSON Call-Graph Format.
+Convert C call-graph edge list to FASTEN JSON Call-Graph Format.
 Dependencies: https://www.debian.org/doc/debian-policy/ch-relationships.html
 """
 import os
@@ -213,32 +213,32 @@ def check_custom_deps(path, deps):
     return None
 
 
-class CScout_Canonicalizer:
-    """A canonicalizer that transforms CScout Call-Graphs to FASTEN Call-Graphs
+class C_Canonicalizer:
+    """A canonicalizer that transforms C Call-Graphs to FASTEN Call-Graphs
 
     You should always run this tool in the environment where the Call-Graph
-    produced.
+    produced. The format of the input must be edge list separated by space.
 
     **Currently it only supports Debian Packages**
 
     To use:
-        can = CScout_Canonicalizer('directory')
+        can = C_Canonicalizer('directory')
         can.canonicalize()
     """
     def __init__(self, directory, forge="debian", console_logging=True,
                  file_logging=False, logging_level='DEBUG', custom_deps=None):
-        """CScout_Canonicalizer constructor.
+        """C_Canonicalizer constructor.
 
         Args:
             directory: A directory that must contains, at least, an .deb
                 or .udeb file, an .txt file with the edge list produced
-                by CScout, and an .dsc file.
+                by the analysis, and an .dsc file.
             forge: The forge of the analyzed package.
             console_logging: Enable logs to appear in stdout.
             file_logging: Create a file called debug.log in the 'directory'
                 with the logs.
         Attributes:
-            directory: directory path with CScout analysis results.
+            directory: directory path with analysis results.
             cgraph: Call-Graph filename.
             deb: deb or udeb filename.
             dsc: dsc filename.
@@ -342,7 +342,7 @@ class CScout_Canonicalizer:
         self.save(self.directory + '/can_cgraph.json')
 
     def _set_logger(self, console_logging, file_logging, logging_level):
-        self.logger = logging.getLogger('CScout canonicalizer')
+        self.logger = logging.getLogger('C canonicalizer')
         self.logger.setLevel(logging.DEBUG)
         self.logger.propagate = False
         # create formatter
@@ -441,12 +441,12 @@ def main():
     parser.add_argument('-c', '--custom-deps', dest='custom_deps',
                         default=None, help='custom user defined dependencies')
     args = parser.parse_args()
-    can = CScout_Canonicalizer(args.directory,
-                               forge=args.forge,
-                               console_logging=args.verbose,
-                               file_logging=args.file_logging,
-                               logging_level=args.logging_level,
-                               custom_deps=args.custom_deps)
+    can = C_Canonicalizer(args.directory,
+                          forge=args.forge,
+                          console_logging=args.verbose,
+                          file_logging=args.file_logging,
+                          logging_level=args.logging_level,
+                          custom_deps=args.custom_deps)
     can.canonicalize()
 
 

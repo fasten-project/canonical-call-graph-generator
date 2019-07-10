@@ -4,7 +4,7 @@ import copy
 import pytest
 from mock import patch
 from mock import Mock
-from fcan.fcan import CScout_Canonicalizer
+from fcan.fcan import C_Canonicalizer
 from fcan.fcan import CanonicalizationError
 
 
@@ -33,14 +33,14 @@ def get_directory(filename):
 
 def get_canonicalizer(package):
     directory = get_directory(package)
-    return CScout_Canonicalizer(directory, console_logging=False)
+    return C_Canonicalizer(directory, console_logging=False)
 
 
 def get_canonicalizer_with_custom_deps(package, deps, parse=False):
     directory = get_directory(package)
     custom_deps = get_directory(deps)
-    can = CScout_Canonicalizer(directory, console_logging=False,
-                               custom_deps=custom_deps)
+    can = C_Canonicalizer(directory, console_logging=False,
+                          custom_deps=custom_deps)
     if parse:
         can.parse_files()
     return can
