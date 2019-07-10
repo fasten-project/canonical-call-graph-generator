@@ -1,0 +1,89 @@
+{
+    "product": "anna",
+    "version": "1.58",
+    "forge": "debian",
+    "depset": [
+        {
+            "forge": "debian",
+            "product": "libdebian-installer4-dev",
+            "constraints": ">= 0.109",
+            "architectures": ""
+        },
+        {
+            "forge": "debian",
+            "product": "debhelper",
+            "constraints": ">= 9",
+            "architectures": ""
+        },
+        {
+            "forge": "debian",
+            "product": "libdebconfclient0-udeb",
+            "constraints": "",
+            "architectures": ""
+        },
+        {
+            "forge": "debian",
+            "product": "cdebconf-udeb",
+            "constraints": "",
+            "architectures": ""
+        },
+        {
+            "forge": "debian",
+            "product": "libc6-udeb",
+            "constraints": ">= 2.24",
+            "architectures": ""
+        },
+        {
+            "forge": "debian",
+            "product": "dpkg-dev",
+            "constraints": ">= 1.15.7",
+            "architectures": ""
+        },
+        {
+            "forge": "debian",
+            "product": "libdebconfclient0-dev",
+            "constraints": ">= 0.46",
+            "architectures": ""
+        },
+        {
+            "forge": "debian",
+            "product": "libdebian-installer4-udeb",
+            "constraints": ">= 0.110",
+            "architectures": ""
+        },
+        {
+            "forge": "github",
+            "product": "my_dep",
+            "constraints": "",
+            "architecture": ""
+        },
+        {
+            "forge": "UNDEFINED",
+            "product": "libc6-dev",
+            "architectures": "",
+            "constraints": ""
+        }
+    ],
+    "graph": [
+        [
+            "/C/main()",
+            "//libc6-dev/C/getenv()"
+        ],
+        [
+            "/C/set_retriever()",
+            "//libdebconfclient0-dev/%2Fusr%2Finclude%2Fcdebconf/debconfclient.h;debconf_set()"
+        ],
+        [
+            "/C/main()",
+            "//libdebian-installer4-dev/C/di_system_package_check_subarchitecture()"
+        ],
+        [
+            "/C/main()",
+            "//libdebian-installer4-dev/%2Fusr%2Finclude%2Fdebian-installer%2Fsystem/packages.h;di_system_packages_status_read_file()"
+        ],
+        [
+            "/C/main()",
+            "//my_dep/C/sum()"
+        ]
+    ]
+}
