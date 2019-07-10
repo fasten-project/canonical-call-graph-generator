@@ -165,7 +165,7 @@ def test_add_orphan_dependenies():
 
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
 def test_find_product(mock_find_product):
-    can = get_canonicalizer('anna-1.58')
+    can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json')
     can.parse_files()
     # Test 1
     path1 = '/build/anna-xjzj1e/anna-1.58/retriever.c'
@@ -187,7 +187,7 @@ def test_find_product(mock_find_product):
 
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
 def test_parse_node(mock_find_product):
-    can = get_canonicalizer('anna-1.58')
+    can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json')
     can.parse_files()
     # Test 1
     node1 = 'public:/build/anna-xjzj1e/anna-1.58/retriever.c:set_retriever'
@@ -222,7 +222,7 @@ def test_uri_generator():
 
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
 def test_get_uri(mock_find_product):
-    can = get_canonicalizer('anna-1.58')
+    can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json')
     can.parse_files()
     # Test 1
     node1 = 'public:/build/anna-xjzj1e/anna-1.58/retriever.c:set_retriever'
@@ -261,7 +261,7 @@ def test_get_uri(mock_find_product):
 
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
 def test_parse_edge(mock_find_product):
-    can = get_canonicalizer('anna-1.58')
+    can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json')
     can.parse_files()
     edge = [
         'public:/build/anna-xjzj1e/anna-1.58/retriever.c:set_retriever',

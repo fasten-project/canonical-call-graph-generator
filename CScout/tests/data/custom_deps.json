@@ -5,6 +5,16 @@
         "architecture": "",
         "regex": [
             "^/usr/local/include/my_dep/.*"
-        ]
+        ],
+        "keep": true
+    },
+    "CScout": {
+        "forge": "",
+        "constraints": "",
+        "architecture": "",
+        "regex": [
+            "^/usr/local/include/cscout.*"
+        ],
+        "keep": false
     }
 }

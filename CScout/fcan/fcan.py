@@ -275,6 +275,10 @@ class CScout_Canonicalizer:
         self.package_list = None
         self.can_graph = []
 
+        # Nodes that contain one of those values are skipped from the canonical
+        # Call-Graph
+        self.rules = ['UNDEF']
+
         self.dependencies = []
         # dict of dicts
         self.custom_deps = None
@@ -282,18 +286,17 @@ class CScout_Canonicalizer:
             with open(custom_deps, 'r') as fdr:
                 self.custom_deps = json.load(fdr)
             for key, value in self.custom_deps.items():
-                self.dependencies.append({
-                    "forge": value['forge'],
-                    "product": key,
-                    "constraints": value['constraints'],
-                    "architecture": value['architecture']
-                })
+                if value['keep']:
+                    self.dependencies.append({
+                        "forge": value['forge'],
+                        "product": key,
+                        "constraints": value['constraints'],
+                        "architecture": value['architecture']
+                    })
+                else:
+                    self.rules.append(key)
 
         self.orphan_deps = set()
-
-        # Nodes that contain one of those values are skipped from the canonical
-        # Call-Graph
-        self.rules = ['UNDEF', 'CScout']
 
     def parse_files(self):
         dsc = Dsc(self.dsc)
@@ -400,8 +403,6 @@ class CScout_Canonicalizer:
             product = check_custom_deps(path, self.custom_deps)
             if product is not None:
                 return product
-        if path.startswith('/usr/local/include/cscout'):
-            return "CScout"
         self.logger.debug("UNDEF match: %s", path)
         return "UNDEF"
 
