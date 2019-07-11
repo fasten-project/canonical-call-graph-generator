@@ -226,7 +226,8 @@ class C_Canonicalizer:
         can.canonicalize()
     """
     def __init__(self, directory, forge="debian", console_logging=True,
-                 file_logging=False, logging_level='DEBUG', custom_deps=None):
+                 file_logging=False, logging_level='DEBUG', custom_deps=None,
+                 product_regex=None):
         """C_Canonicalizer constructor.
 
         Args:
@@ -237,6 +238,8 @@ class C_Canonicalizer:
             console_logging: Enable logs to appear in stdout.
             file_logging: Create a file called debug.log in the 'directory'
                 with the logs.
+            custom_deps: User defined dependencies and constraints
+            product_regex: Regex to match products files
         Attributes:
             directory: directory path with analysis results.
             cgraph: Call-Graph filename.
@@ -295,6 +298,12 @@ class C_Canonicalizer:
                     })
                 else:
                     self.rules.append(key)
+
+        self.product_regex = product_regex
+        if self.product_regex is None:
+            # Default regex to detect files when analyzing a product in sbuild
+            # environment.
+            self.product_regex = '^/build/[^/]*/{}[^/]*/.*$'
 
         self.orphan_deps = set()
 
@@ -396,7 +405,7 @@ class C_Canonicalizer:
         stdout, status = find_product(path)
         if status == 0:
             return stdout.decode(encoding='utf-8').split(':')[0]
-        if re.match(r'^/build/[^/]*/' + self.product + '[^/]*/.*$', path):
+        if re.match(r'' + self.product_regex.format(self.product), path):
             self.logger.debug("product match: %s", path)
             return self.product
         if self.custom_deps is not None:
@@ -440,13 +449,16 @@ def main():
                         default='DEBUG', help='logging level for logs')
     parser.add_argument('-c', '--custom-deps', dest='custom_deps',
                         default=None, help='custom user defined dependencies')
+    parser.add_argument('-r', '--regex-product', dest='regex_product',
+                        default=None, help='regex to match product\'s files')
     args = parser.parse_args()
     can = C_Canonicalizer(args.directory,
                           forge=args.forge,
                           console_logging=args.verbose,
                           file_logging=args.file_logging,
                           logging_level=args.logging_level,
-                          custom_deps=args.custom_deps)
+                          custom_deps=args.custom_deps,
+                          product_regex=args.regex_product)
     can.canonicalize()
 
 
