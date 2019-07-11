@@ -437,7 +437,7 @@ def main():
     Parse command line arguments and execute the Canonicalizer.
     """
     parser = argparse.ArgumentParser(description=(
-        'Generate FASTEN Canonical Call Graphs'))
+        'Canonicalize Call Graphs to FASTEN Canonical Call Graphs'))
     parser.add_argument('directory', help=(
         'a directory with the Call Graph, and description files'))
     parser.add_argument('-f', '--forge', default='debian', help=(
