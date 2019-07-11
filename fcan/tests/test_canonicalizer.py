@@ -111,7 +111,7 @@ def test_save(mock_find_product):
     can = get_canonicalizer('anna-1.58')
     can.parse_files()
     can.gen_can_cgraph()
-    can.save(filename)
+    can.save()
     with open(filename, 'r') as f:
         res = json.load(f)
     final_dependencies = copy.deepcopy(dependencies)

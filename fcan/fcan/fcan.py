@@ -227,7 +227,7 @@ class C_Canonicalizer:
     """
     def __init__(self, directory, forge="debian", console_logging=True,
                  file_logging=False, logging_level='DEBUG', custom_deps=None,
-                 product_regex=None):
+                 product_regex=None, output=None):
         """C_Canonicalizer constructor.
 
         Args:
@@ -240,6 +240,7 @@ class C_Canonicalizer:
                 with the logs.
             custom_deps: User defined dependencies and constraints
             product_regex: Regex to match products files
+            output: File to save the canonicalized call graph
         Attributes:
             directory: directory path with analysis results.
             cgraph: Call-Graph filename.
@@ -305,6 +306,10 @@ class C_Canonicalizer:
             # environment.
             self.product_regex = '^/build/[^/]*/{}[^/]*/.*$'
 
+        self.output = output
+        if self.output is None:
+            self.output = self.directory + '/can_cgraph.json'
+
         self.orphan_deps = set()
 
     def parse_files(self):
@@ -334,7 +339,7 @@ class C_Canonicalizer:
                 self.can_graph.append(can_edge)
         self._add_orphan_dependenies()
 
-    def save(self, filename='can_cgraph.json'):
+    def save(self):
         data = {
             'product': self.product,
             'version': self.version,
@@ -342,13 +347,13 @@ class C_Canonicalizer:
             'depset': self.dependencies,
             'graph': self.can_graph
         }
-        with open(filename, 'w') as fdr:
+        with open(self.output, 'w') as fdr:
             json.dump(data, fdr)
 
     def canonicalize(self):
         self.parse_files()
         self.gen_can_cgraph()
-        self.save(self.directory + '/can_cgraph.json')
+        self.save()
 
     def _set_logger(self, console_logging, file_logging, logging_level):
         self.logger = logging.getLogger('C canonicalizer')
@@ -451,6 +456,8 @@ def main():
                         default=None, help='custom user defined dependencies')
     parser.add_argument('-r', '--regex-product', dest='regex_product',
                         default=None, help='regex to match product\'s files')
+    parser.add_argument('-o', '--output', dest='output', default=None,
+                        help='file to save the canonicalized call graph')
     args = parser.parse_args()
     can = C_Canonicalizer(args.directory,
                           forge=args.forge,
