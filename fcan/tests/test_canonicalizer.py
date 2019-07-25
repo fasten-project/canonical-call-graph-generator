@@ -139,7 +139,7 @@ def test_save(mock_find_product):
         res = json.load(f)
     final_dependencies = copy.deepcopy(dependencies)
     final_dependencies.append({"architectures": "", "constraints": "",
-                               "forge": "UNDEFINED", "product": "libc6-dev"})
+                               "forge": "debian", "product": "libc6-dev"})
     for dep in final_dependencies:
         assert dep in res['depset']
     for node in can_graph:
@@ -160,7 +160,7 @@ def test_canonicalize(mock_find_product):
         res = json.load(f)
     final_dependencies = copy.deepcopy(dependencies)
     final_dependencies.append({"architectures": "", "constraints": "",
-                               "forge": "UNDEFINED", "product": "libc6-dev"})
+                               "forge": "debian", "product": "libc6-dev"})
     final_dependencies.append({'product': "my_dep", 'forge': "github",
                                'constraints': "", 'architecture': ""})
     final_can_graph = copy.deepcopy(can_graph)
@@ -181,7 +181,7 @@ def test_add_orphan_dependenies():
     can.orphan_deps.add('dep')
     can._add_orphan_dependenies()
     dependencies.append({'architectures': '', 'constraints': '',
-                         'forge': 'UNDEFINED', 'product': 'dep'})
+                         'forge': 'debian', 'product': 'dep'})
     for dep in dependencies:
         assert dep in can.dependencies
 

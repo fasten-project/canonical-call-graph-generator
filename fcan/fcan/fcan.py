@@ -444,11 +444,11 @@ class C_Canonicalizer:
         return "UNDEF"
 
     def _add_orphan_dependenies(self):
+        """Add products that dpkg detected but we don't have them as deps."""
         for orph in self.orphan_deps:
-            # TODO find a way to detect the forge.
             # TODO Handle special cases like libc
             self.dependencies.append({
-                'forge': 'UNDEFINED',
+                'forge': 'debian',
                 'product': orph,
                 'architectures': '',
                 'constraints': ''})
