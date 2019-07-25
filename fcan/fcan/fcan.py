@@ -467,7 +467,12 @@ class C_Canonicalizer:
         return "UNDEF"
 
     def _add_orphan_dependenies(self):
-        """Add products that dpkg detected but we don't have them as deps."""
+        """Add products that dpkg detected but we don't have them as deps.
+
+        Orphan dependencies are probably Essential packages. You can find more
+        about essential packages here:
+            https://www.debian.org/doc/debian-policy/ch-binary.html#essential-packages
+        """
         for orph in self.orphan_deps:
             # TODO Handle special cases like libc
             self.dependencies.append({
