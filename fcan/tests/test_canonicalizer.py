@@ -70,21 +70,21 @@ def get_canonicalizer_with_custom_deps(package, deps, parse=False):
 
 
 dependencies = [{'forge': 'debian', 'product': 'libdebian-installer4-dev',
-                 'constraints': '>= 0.109', 'architectures': ''},
+                 'constraints': '[0.109,)', 'architectures': ''},
                 {'forge': 'debian', 'product': 'libdebian-installer4-udeb',
-                 'constraints': '>= 0.110', 'architectures': ''},
+                 'constraints': '[0.110,)', 'architectures': ''},
                 {'forge': 'debian', 'product': 'dpkg-dev',
-                 'constraints': '>= 1.15.7', 'architectures': ''},
+                 'constraints': '[1.15.7,)', 'architectures': ''},
                 {'forge': 'debian', 'product': 'libdebconfclient0-udeb',
                  'constraints': '', 'architectures': ''},
                 {'forge': 'debian', 'product': 'libc6-udeb',
-                 'constraints': '>= 2.24', 'architectures': ''},
+                 'constraints': '[2.24,)', 'architectures': ''},
                 {'forge': 'debian', 'product': 'libdebconfclient0-dev',
-                 'constraints': '>= 0.46', 'architectures': ''},
+                 'constraints': '[0.46,)', 'architectures': ''},
                 {'forge': 'debian', 'product': 'cdebconf-udeb',
                  'constraints': '', 'architectures': ''},
                 {'forge': 'debian', 'product': 'debhelper',
-                 'constraints': '>= 9', 'architectures': ''}]
+                 'constraints': '[9,)', 'architectures': ''}]
 
 
 can_graph = [

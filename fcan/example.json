@@ -6,13 +6,13 @@
         {
             "forge": "debian",
             "product": "libdebian-installer4-dev",
-            "constraints": ">= 0.109",
+            "constraints": "[0.109,)",
             "architectures": ""
         },
         {
             "forge": "debian",
             "product": "debhelper",
-            "constraints": ">= 9",
+            "constraints": "[9,)",
             "architectures": ""
         },
         {
@@ -30,25 +30,25 @@
         {
             "forge": "debian",
             "product": "libc6-udeb",
-            "constraints": ">= 2.24",
+            "constraints": "[2.24,)",
             "architectures": ""
         },
         {
             "forge": "debian",
             "product": "dpkg-dev",
-            "constraints": ">= 1.15.7",
+            "constraints": "[1.15.7,)",
             "architectures": ""
         },
         {
             "forge": "debian",
             "product": "libdebconfclient0-dev",
-            "constraints": ">= 0.46",
+            "constraints": "[0.46,)",
             "architectures": ""
         },
         {
             "forge": "debian",
             "product": "libdebian-installer4-udeb",
-            "constraints": ">= 0.110",
+            "constraints": "[0.110,)",
             "architectures": ""
         },
         {

@@ -23,7 +23,8 @@
 #
 import os
 from fcan.fcan import safe_split, extract_text, parse_dependency, find_nth,\
-        get_product_names, find_file, find_files, check_custom_deps
+        get_product_names, find_file, find_files, check_custom_deps,\
+        use_mvn_spec
 
 
 def test_safe_split():
@@ -56,7 +57,7 @@ def test_extract_text():
         "Should return ('', 'Hello world')"
 
 
-simple_product = {'architectures': "", 'constraints': ">= 9",
+simple_product = {'architectures': "", 'constraints': "[9,)",
                   'forge': "debian", 'product': "debhelper"}
 complex_product = [{'architectures': "amd64", 'constraints': "",
                     'forge': "debian", 'product': "libdebian-installer4-dev"},
@@ -130,3 +131,12 @@ def test_check_custom_deps():
     path = "/usr/local/include/my_dep/utils.h"
     assert check_custom_deps(path, custom_deps) == 'my_dep'
     assert check_custom_deps('/random/path', custom_deps) is None
+
+
+def test_use_mvn_spec():
+    assert use_mvn_spec("= 1.0") == "[1.0]", "Should return [1.0]"
+    assert use_mvn_spec("<= 1.0") == "(,1.0]", "Should return (,1.0]"
+    assert use_mvn_spec("<< 1.0") == "(,1.0)", "Should return (,1.0)"
+    assert use_mvn_spec(">= 1.0") == "[1.0,)", "Should return [1.0,)"
+    assert use_mvn_spec(">> 1.0") == "(1.0,)", "Should return (1.0,)"
+    assert use_mvn_spec("") == "", "Should return ''"

@@ -58,8 +58,9 @@ It is a JSON with the following keys:
 * __version__: The version associated with this revision.
 * __depset__: An array of JSON objects representing a dependency set.
 Each object has a key forge, a key product, a key constraints, and a
-key architecture. All those details come from the .deb files or user
-input.
+key architecture. In the constaints field we use Maven's [Dependency Version
+Requirement Specification](https://maven.apache.org/pom.html#Dependency_Version_Requirement_Specification)
+instead of Debian's. All those details come from the .deb files or user input.
 * __graph__: A list of pairs of FASTEN schemeless URIs that composed from
 the product, the namespace, and the function name.
 The namespace is 'C' for public functions
@@ -157,25 +158,25 @@ and [udeb](https://github.com/fasten-project/canonical-call-graph-generator/blob
         {
             "forge": "debian",
             "product": "libdebian-installer4-dev",
-            "constraints": ">= 0.109",
+            "constraints": "[0.109,)",
             "architectures": ""
         },
         {
             "forge": "debian",
             "product": "debhelper",
-            "constraints": ">= 9",
+            "constraints": "[9,)",
             "architectures": ""
         },
         {
             "forge": "debian",
             "product": "dpkg-dev",
-            "constraints": ">= 1.15.7",
+            "constraints": "[1.15.7,)",
             "architectures": ""
         },
         {
             "forge": "debian",
             "product": "libdebconfclient0-dev",
-            "constraints": ">= 0.46",
+            "constraints": "[0.46,)",
             "architectures": ""
         },
         {

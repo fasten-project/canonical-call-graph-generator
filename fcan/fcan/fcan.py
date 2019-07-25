@@ -108,7 +108,7 @@ def parse_dependency(dep, forge):
         1) input: "debhelper (>= 9)"
            return:
                 {'architectures': '',
-                 'constraints': '>= 9',
+                 'constraints': '[9,)',
                  'forge': 'debian',
                  'product': 'debhelper'}
 
@@ -132,8 +132,8 @@ def parse_dependency(dep, forge):
     version, dep = extract_text(dep)
     arch, dep = extract_text(dep, ('[', ']'))
     name = dep.strip()
-    return {'forge': forge, 'product': name, 'constraints': version,
-            'architectures': arch}
+    return {'forge': forge, 'product': name,
+            'constraints': use_mvn_spec(version), 'architectures': arch}
 
 
 def get_product_names(dependencies):
@@ -236,6 +236,29 @@ def check_custom_deps(path, deps):
     return None
 
 
+def use_mvn_spec(version):
+    """Use Maven's version specification instead of Debian's.
+
+    Debian packages use the syntax described here:
+        https://www.debian.org/doc/debian-policy/ch-relationships.html
+    Whereas Maven packages use the following specification:
+        https://maven.apache.org/pom.html#Dependency_Version_Requirement_Specification
+
+    FASTEN Canonicalized Call Graphs follows the Maven's specification.
+    """
+    if "<<" in version:
+        return '(,{})'.format(version.replace('<<', '').strip())
+    if "<=" in version:
+        return '(,{}]'.format(version.replace('<=', '').strip())
+    if ">>" in version:
+        return '({},)'.format(version.replace('>>', '').strip())
+    if ">=" in version:
+        return '[{},)'.format(version.replace('>=', '').strip())
+    if "=" in version:
+        return '[{}]'.format(version.replace('=', '').strip())
+    return version
+
+
 class C_Canonicalizer:
     """A canonicalizer that transforms C Call-Graphs to FASTEN Call-Graphs
 
@@ -317,7 +340,7 @@ class C_Canonicalizer:
                     self.dependencies.append({
                         "forge": value['forge'],
                         "product": key,
-                        "constraints": value['constraints'],
+                        "constraints": use_mvn_spec(value['constraints']),
                         "architecture": value['architecture']
                     })
                 else:
