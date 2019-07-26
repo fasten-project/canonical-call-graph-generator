@@ -24,7 +24,14 @@
 import os
 from fcan.fcan import safe_split, extract_text, parse_dependency, find_nth,\
         get_product_names, find_file, find_files, check_custom_deps,\
-        use_mvn_spec
+        use_mvn_spec, parse_changelog, convert_debian_time_to_unix
+
+
+def get_directory(filename):
+    directory = '{}/{}/{}/{}'.format(
+        os.path.curdir, 'tests', 'data', filename
+    )
+    return directory
 
 
 def test_safe_split():
@@ -140,3 +147,17 @@ def test_use_mvn_spec():
     assert use_mvn_spec(">= 1.0") == "[1.0,)", "Should return [1.0,)"
     assert use_mvn_spec(">> 1.0") == "(1.0,)", "Should return (1.0,)"
     assert use_mvn_spec("") == "", "Should return ''"
+
+
+def test_parse_changelog():
+    package3 = get_directory('package3')
+    anna = get_directory('anna-1.58')
+    assert parse_changelog(package3 + '/changelog') is None
+    assert (parse_changelog(anna + '/changelog') ==
+            'Sun, 05 Mar 2017 12:26:20 +0100')
+
+
+def test_convert_debian_time_to_unix():
+    d1 = "Sun, 05 Mar 2017 12:26:20 +0100"
+    epoch1 = "1488709580"
+    assert convert_debian_time_to_unix(d1) == epoch1

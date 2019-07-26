@@ -115,6 +115,8 @@ def test_parse_files():
     assert can.product == 'anna', "Should be anna"
     assert can.binary == 'anna', "Should be anna"
     assert can.version == '1.58', "Should be 1.58"
+    assert can.version == '1.58', "Should be 1.58"
+    assert can.timestamp == '1488709580', "Should be 1488709580"
     for dep in dependencies:
         assert dep in can.dependencies
 
@@ -147,6 +149,7 @@ def test_save(mock_find_product):
     assert res['product'] == 'anna'
     assert res['version'] == '1.58'
     assert res['forge'] == 'debian'
+    assert res['timestamp'] == '1488709580'
     os.remove(filename)
 
 
@@ -172,6 +175,7 @@ def test_canonicalize(mock_find_product):
     assert res['product'] == 'anna'
     assert res['version'] == '1.58'
     assert res['forge'] == 'debian'
+    assert res['timestamp'] == '1488709580'
     os.remove(filename)
 
 

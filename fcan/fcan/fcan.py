@@ -33,7 +33,9 @@ import csv
 import json
 import logging
 import argparse
+import time
 import subprocess as sp
+from datetime import datetime
 from pydpkg import Dpkg, Dsc
 
 
@@ -259,6 +261,33 @@ def use_mvn_spec(version):
     return version
 
 
+def parse_changelog(filename):
+    """Parse Debian syntax changelog files and return last date.
+
+    Args:
+        filename: filename of changelog
+    Returns:
+        date in the format day-of-week, dd month yyyy hh:mm:ss +zzzz or -1
+    """
+    with open(filename, 'r') as changelog:
+        for line in changelog.readlines():
+            if re.match(r'^ .*<.*@.*>  [A-Z][a-z][a-z], [0-9][0-9]', line):
+                return re.split(r'^ .*<.*@.*>', line)[1].strip()
+
+
+def convert_debian_time_to_unix(debian_time):
+    """Convert Debian time to unix time, i.e. seconds from epoch.
+
+    Args:
+         date in the format day-of-week, dd month yyyy hh:mm:ss +zzzz
+
+    Returns:
+        str of unix timestamp
+    """
+    dt_obj = datetime.strptime(debian_time, '%a, %d %b %Y %H:%M:%S %z')
+    return str(int(time.mktime(dt_obj.timetuple())))
+
+
 class C_Canonicalizer:
     """A canonicalizer that transforms C Call-Graphs to FASTEN Call-Graphs
 
@@ -292,10 +321,12 @@ class C_Canonicalizer:
             cgraph: Call-Graph filename.
             deb: deb or udeb filename.
             dsc: dsc filename.
+            changelog: changelog file.
             forge: Product's forge.
             product: Product's name.
             binary: String that contains list of binaries.
             version: Product's version (string).
+            timestamp: seconds form epoch.
             package_list: String that contains information about generated
                 packages
             dependencies: Product's dependencies (dict or list).
@@ -317,11 +348,15 @@ class C_Canonicalizer:
         self.dsc = find_file(self.directory, ('.dsc'))
         if self.dsc is None:
             raise CanonicalizationError(".dsc file not found")
+        self.changelog = find_file(self.directory, ('changelog'))
+        if self.changelog is None:
+            raise CanonicalizationError("changelog file not found")
 
         self.forge = forge
         self.product = None
         self.binary = None
         self.version = None
+        self.timestamp = None
         self.package_list = None
         self.can_graph = []
 
@@ -359,12 +394,20 @@ class C_Canonicalizer:
         self.orphan_deps = set()
 
     def parse_files(self):
+        # dsc file
         dsc = Dsc(self.dsc)
         depends = set(safe_split(dsc.headers['Build-Depends']))
         self.product = dsc.headers['Source']
         self.binary = dsc.headers['Binary']
         self.version = dsc.headers['Version']
         self.package_list = dsc.headers['Package-List']
+        # changelog
+        debian_time = parse_changelog(self.changelog)
+        if debian_time:
+            self.timestamp = convert_debian_time_to_unix(debian_time)
+        else:
+            self.timestamp = -1
+        # deb and udeb files
         for deb in self.debs:
             dpkg = Dpkg(deb)
             depends.update(safe_split(dpkg.headers['Depends']))
@@ -393,6 +436,7 @@ class C_Canonicalizer:
             'product': self.product,
             'version': self.version,
             'forge': self.forge,
+            'timestamp': self.timestamp,
             'depset': self.dependencies,
             'graph': self.can_graph
         }
