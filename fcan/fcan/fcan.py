@@ -379,8 +379,11 @@ class C_Canonicalizer:
             edges = csv.reader(fdr, delimiter=' ')
             for edge in edges:
                 can_edge = self._parse_edge(edge)
-                if any(r in can_edge[0] for r in self.rules) or \
-                   any(r in can_edge[1] for r in self.rules):
+                # If the product of the first node is not the analyzed or
+                # if the product of either nodes is in rules skip that edge
+                if (can_edge[0].startswith('//') or
+                    (any(r in can_edge[0] for r in self.rules) or
+                     any(r in can_edge[1] for r in self.rules))):
                     continue
                 self.can_graph.append(can_edge)
         self._add_orphan_dependenies()
