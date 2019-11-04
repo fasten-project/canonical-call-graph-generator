@@ -306,9 +306,9 @@ class C_Canonicalizer:
         """C_Canonicalizer constructor.
 
         Args:
-            directory: A directory that must contains, at least, an .deb
+            directory: A directory that must contains, an .deb
                 or .udeb file, an .txt file with the edge list produced
-                by the analysis, and an .dsc file.
+                by the analysis.
             forge: The forge of the analyzed package.
             console_logging: Enable logs to appear in stdout.
             file_logging: Create a file called debug.log in the 'directory'
@@ -320,20 +320,16 @@ class C_Canonicalizer:
             directory: directory path with analysis results.
             cgraph: Call-Graph filename.
             deb: deb or udeb filename.
-            dsc: dsc filename.
             changelog: changelog file.
             forge: Product's forge.
             product: Product's name.
-            binary: String that contains list of binaries.
             version: Product's version (string).
             timestamp: seconds form epoch.
-            package_list: String that contains information about generated
-                packages
             dependencies: Product's dependencies (dict or list).
             can_graph: Canonicalized Call-Graph.
-            orphan_deps: Dependencies that are not declared in deb or dsc.
+            orphan_deps: Dependencies that are not declared in deb.
         Raise:
-            CanonicalizationError: if .txt or .deb or .dsc files not found.
+            CanonicalizationError: if .txt or .deb files not found.
         """
         self._set_logger(console_logging, file_logging, logging_level)
 
@@ -342,22 +338,17 @@ class C_Canonicalizer:
         self.cgraph = find_file(self.directory, '.txt')
         if self.cgraph is None:
             raise CanonicalizationError(".txt file not found")
-        self.debs = find_files(self.directory, ('.deb', '.udeb'))
-        if self.debs is None:
+        self.deb = find_file(self.directory, ('.deb', '.udeb'))
+        if self.deb is None:
             raise CanonicalizationError(".deb or .udeb file not found")
-        self.dsc = find_file(self.directory, ('.dsc'))
-        if self.dsc is None:
-            raise CanonicalizationError(".dsc file not found")
         self.changelog = find_file(self.directory, ('changelog'))
         if self.changelog is None:
             raise CanonicalizationError("changelog file not found")
 
         self.forge = forge
         self.product = None
-        self.binary = None
         self.version = None
         self.timestamp = None
-        self.package_list = None
         self.can_graph = []
 
         # Nodes that contain one of those values are skipped from the canonical
@@ -394,23 +385,22 @@ class C_Canonicalizer:
         self.orphan_deps = set()
 
     def parse_files(self):
-        # dsc file
-        dsc = Dsc(self.dsc)
-        depends = set(safe_split(dsc.headers['Build-Depends']))
-        self.product = dsc.headers['Source']
-        self.binary = dsc.headers['Binary']
-        self.version = dsc.headers['Version']
-        self.package_list = dsc.headers['Package-List']
+        # deb file
+        dpkg = Dpkg(self.deb)
+        self.product = dpkg.headers['Package']
+        self.version = dpkg.headers['Version']
         # changelog
         debian_time = parse_changelog(self.changelog)
         if debian_time:
             self.timestamp = convert_debian_time_to_unix(debian_time)
         else:
             self.timestamp = -1
-        # deb and udeb files
-        for deb in self.debs:
-            dpkg = Dpkg(deb)
-            depends.update(safe_split(dpkg.headers['Depends']))
+        # Dependencies
+        try:
+            depends = set(safe_split(dpkg.headers['Depends']))
+        except KeyError:
+            depends = []
+            self.logger.warning("Warning: %s has no Depends", self.deb)
         # Set forge as debian because they declared as Debian packages
         debian_dependencies = [parse_dependency(dep, 'debian')
                                for dep in depends]
