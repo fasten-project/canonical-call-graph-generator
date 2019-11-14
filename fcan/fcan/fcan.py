@@ -36,7 +36,6 @@ import argparse
 import time
 import subprocess as sp
 from datetime import datetime
-from pydpkg import Dpkg, Dsc
 
 
 class CanonicalizationError(Exception):
@@ -275,6 +274,36 @@ def parse_changelog(filename):
                 return re.split(r'^ .*<.*@.*>', line)[1].strip()
 
 
+def parse_deb_file(filename):
+    """Parse a .deb or .udeb file using dpkg -I
+
+    Args:
+        filename: filename of changelog
+
+    Returns:
+        dict: with the following keys; Package, Source, Version, Architecture,
+            and Depends (not always)
+    """
+    cmd = sp.Popen(['dpkg', '-I', filename], stdout=sp.PIPE, stderr=sp.STDOUT)
+    stdout, _ = cmd.communicate()
+    # TODO handle errors
+    # status = cmd.returncode
+    res = {}
+    for line in stdout.split('\n'):
+        line = line.strip()
+        if line.startswith('Package:'):
+            res['Package'] = line[line.find(':')+1:].strip()
+        elif line.startswith('Source:'):
+            res['Source'] = line[line.find(':')+1:].strip()
+        elif line.startswith('Version:'):
+            res['Version'] = line[line.find(':')+1:].strip()
+        elif line.startswith('Architecture:'):
+            res['Architecture'] = line[line.find(':')+1:].strip()
+        elif line.startswith('Depends:'):
+            res['Depends'] = line[line.find(':')+1:].strip()
+    return res
+
+
 def convert_debian_time_to_unix(debian_time):
     """Convert Debian time to unix time, i.e. seconds from epoch.
 
@@ -324,6 +353,7 @@ class C_Canonicalizer:
             forge: Product's forge.
             product: Product's name.
             version: Product's version (string).
+            version: Product's architecture.
             timestamp: seconds form epoch.
             dependencies: Product's dependencies (dict or list).
             can_graph: Canonicalized Call-Graph.
@@ -348,6 +378,7 @@ class C_Canonicalizer:
         self.forge = forge
         self.product = None
         self.version = None
+        self.architecture = None
         self.timestamp = None
         self.can_graph = []
 
@@ -386,9 +417,10 @@ class C_Canonicalizer:
 
     def parse_files(self):
         # deb file
-        dpkg = Dpkg(self.deb)
-        self.product = dpkg.headers['Package']
-        self.version = dpkg.headers['Version']
+        dpkg = parse_deb_file(self.deb)
+        self.product = dpkg['Package']
+        self.version = dpkg['Version']
+        self.architecture = dpkg['Architecture']
         # changelog
         debian_time = parse_changelog(self.changelog)
         if debian_time:
@@ -397,7 +429,7 @@ class C_Canonicalizer:
             self.timestamp = -1
         # Dependencies
         try:
-            depends = set(safe_split(dpkg.headers['Depends']))
+            depends = set(safe_split(dpkg['Depends']))
         except KeyError:
             depends = []
             self.logger.warning("Warning: %s has no Depends", self.deb)
@@ -425,6 +457,7 @@ class C_Canonicalizer:
         data = {
             'product': self.product,
             'version': self.version,
+            'architecture': self.architecture,
             'forge': self.forge,
             'timestamp': self.timestamp,
             'depset': self.dependencies,
