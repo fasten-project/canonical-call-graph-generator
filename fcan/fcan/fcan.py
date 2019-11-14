@@ -289,7 +289,7 @@ def parse_deb_file(filename):
     # TODO handle errors
     # status = cmd.returncode
     res = {}
-    for line in stdout.split('\n'):
+    for line in stdout.decode().split('\n'):
         line = line.strip()
         if line.startswith('Package:'):
             res['Package'] = line[line.find(':')+1:].strip()
