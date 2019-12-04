@@ -407,7 +407,7 @@ class C_Canonicalizer:
         if self.product_regex is None:
             # Default regex to detect files when analyzing a product in sbuild
             # environment.
-            self.product_regex = '^/build/[^/]*/{}[^/]*/.*$'
+            self.product_regex = '^/build/[^/]*/.*$'
 
         self.output = output
         if self.output is None:
@@ -526,7 +526,7 @@ class C_Canonicalizer:
         stdout, status = find_product(path)
         if status == 0:
             return stdout.decode(encoding='utf-8').split(':')[0]
-        if re.match(r'' + self.product_regex.format(self.product), path):
+        if re.match(r'' + self.product_regex, path):
             self.logger.debug("product match: %s", path)
             return self.product
         if self.custom_deps is not None:
