@@ -529,6 +529,8 @@ class C_Canonicalizer:
         if re.match(r'' + self.product_regex, path):
             self.logger.debug("product match: %s", path)
             return self.product
+        if path.startswith('./'):
+            return self.product
         if self.custom_deps is not None:
             product = check_custom_deps(path, self.custom_deps)
             if product is not None:
