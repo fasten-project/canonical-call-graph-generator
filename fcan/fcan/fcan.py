@@ -317,6 +317,28 @@ def convert_debian_time_to_unix(debian_time):
     return str(int(time.mktime(dt_obj.timetuple())))
 
 
+def canonicalize_path(path):
+    """Canonicalize a given path.
+
+    If the path starts with /build/XXX/package-version then remove this prefix.
+
+    Args:
+        path
+
+    Returns:
+        Canonicalized path.
+    """
+    dummy_prefix = '/build/dummy_pkg/pkg-version/'
+    if not path.startswith('/'):
+        path = dummy_prefix + path
+    path = os.path.abspath(path)
+    # Remove /build prefix
+    prefix_regex = re.match(r'(/build/[^/]*/[^/]*-[^/]*/)(.*)', path)
+    if prefix_regex:
+        path = prefix_regex.groups()[1]
+    return path
+
+
 class C_Canonicalizer:
     """A canonicalizer that transforms C Call-Graphs to FASTEN Call-Graphs
 
