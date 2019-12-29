@@ -153,9 +153,11 @@ def test_use_mvn_spec():
 def test_parse_changelog():
     package3 = get_directory('package3')
     anna = get_directory('anna-1.58')
-    assert parse_changelog(package3 + '/changelog') is None
-    assert (parse_changelog(anna + '/changelog') ==
+    assert parse_changelog(package3 + '/changelog', '1.58') is None
+    assert (parse_changelog(anna + '/changelog', '1.58') ==
             'Sun, 05 Mar 2017 12:26:20 +0100')
+    assert (parse_changelog(anna + '/changelog', '1.57') ==
+            'Mon, 13 Feb 2017 07:08:47 +0100')
 
 
 def test_convert_debian_time_to_unix():

@@ -260,7 +260,7 @@ def use_mvn_spec(version):
     return version
 
 
-def parse_changelog(filename):
+def parse_changelog(filename, version):
     """Parse Debian syntax changelog files and return last date.
 
     Args:
@@ -268,10 +268,17 @@ def parse_changelog(filename):
     Returns:
         date in the format day-of-week, dd month yyyy hh:mm:ss +zzzz or -1
     """
+    check_line = False
     with open(filename, 'r') as changelog:
         for line in changelog.readlines():
-            if re.match(r'^ .*<.*@.*>  [A-Z][a-z][a-z], [0-9][0-9]', line):
-                return re.split(r'^ .*<.*@.*>', line)[1].strip()
+            if check_line:
+                if re.match(r'^ .*<.*@.*>  [A-Z][a-z][a-z], [0-9][0-9]', line):
+                    return re.split(r'^ .*<.*@.*>', line)[1].strip()
+            else:
+                m = re.match(r'^.* \((.*)\)', line)
+                if m:
+                    if m.groups()[0] == version:
+                        check_line = True
 
 
 def parse_deb_file(filename):
@@ -446,7 +453,7 @@ class C_Canonicalizer:
         self.version = dpkg['Version']
         self.architecture = dpkg['Architecture']
         # changelog
-        debian_time = parse_changelog(self.changelog)
+        debian_time = parse_changelog(self.changelog, self.version)
         if debian_time:
             self.timestamp = convert_debian_time_to_unix(debian_time)
         else:
