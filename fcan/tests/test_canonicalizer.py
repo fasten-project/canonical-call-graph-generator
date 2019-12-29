@@ -47,6 +47,19 @@ class find_product_mock(Mock):
         return '', 1
 
 
+class parse_deb_file_mock(Mock):
+    def __call__(self, *args, **kwargs):
+        filename = args[0]
+        if filename == './tests/data/anna-1.58/anna_1.58_amd64.udeb':
+            return {
+                'Package': 'anna',
+                'Version': '1.58',
+                'Architecture': 'amd64',
+                'Depends': 'libc6-udeb (>= 2.24), libdebconfclient0-udeb, libdebian-installer4-udeb (>= 0.110), cdebconf-udeb'
+            }
+        return {}
+
+
 def get_directory(filename):
     directory = '{}/{}/{}/{}'.format(
         os.path.curdir, 'tests', 'data', filename
@@ -69,22 +82,14 @@ def get_canonicalizer_with_custom_deps(package, deps, parse=False):
     return can
 
 
-dependencies = [{'forge': 'debian', 'product': 'libdebian-installer4-dev',
-                 'constraints': '[0.109,)', 'architectures': ''},
-                {'forge': 'debian', 'product': 'libdebian-installer4-udeb',
+dependencies = [{'forge': 'debian', 'product': 'libdebian-installer4-udeb',
                  'constraints': '[0.110,)', 'architectures': ''},
-                {'forge': 'debian', 'product': 'dpkg-dev',
-                 'constraints': '[1.15.7,)', 'architectures': ''},
                 {'forge': 'debian', 'product': 'libdebconfclient0-udeb',
                  'constraints': '', 'architectures': ''},
                 {'forge': 'debian', 'product': 'libc6-udeb',
                  'constraints': '[2.24,)', 'architectures': ''},
-                {'forge': 'debian', 'product': 'libdebconfclient0-dev',
-                 'constraints': '[0.46,)', 'architectures': ''},
                 {'forge': 'debian', 'product': 'cdebconf-udeb',
-                 'constraints': '', 'architectures': ''},
-                {'forge': 'debian', 'product': 'debhelper',
-                 'constraints': '[9,)', 'architectures': ''}]
+                 'constraints': '', 'architectures': ''}]
 
 
 can_graph = [
@@ -109,12 +114,11 @@ def test_init():
         assert get_canonicalizer('package3')
 
 
-def test_parse_files():
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_parse_files(mock_parse_deb_file):
     can = get_canonicalizer('anna-1.58')
     can.parse_files()
     assert can.product == 'anna', "Should be anna"
-    assert can.binary == 'anna', "Should be anna"
-    assert can.version == '1.58', "Should be 1.58"
     assert can.version == '1.58', "Should be 1.58"
     assert can.timestamp == '1488709580', "Should be 1488709580"
     for dep in dependencies:
@@ -122,7 +126,8 @@ def test_parse_files():
 
 
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
-def test_gen_can_cgraph(mock_find_product):
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_gen_can_cgraph(mock_find_product, mock_parse_deb_file):
     can = get_canonicalizer('anna-1.58')
     can.parse_files()
     can.gen_can_cgraph()
@@ -130,7 +135,8 @@ def test_gen_can_cgraph(mock_find_product):
 
 
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
-def test_save(mock_find_product):
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_save(mock_find_product, mock_parse_deb_file):
     directory = get_directory('anna-1.58')
     filename = directory + '/' + 'can_cgraph.json'
     can = get_canonicalizer('anna-1.58')
@@ -154,7 +160,8 @@ def test_save(mock_find_product):
 
 
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
-def test_canonicalize(mock_find_product):
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_canonicalize(mock_find_product, mock_parse_deb_file):
     can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json')
     can.canonicalize()
     directory = get_directory('anna-1.58')
@@ -179,7 +186,8 @@ def test_canonicalize(mock_find_product):
     os.remove(filename)
 
 
-def test_add_orphan_dependenies():
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_add_orphan_dependenies(mock_parse_deb_file):
     can = get_canonicalizer('anna-1.58')
     can.parse_files()
     can.orphan_deps.add('dep')
@@ -191,7 +199,8 @@ def test_add_orphan_dependenies():
 
 
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
-def test_find_product(mock_find_product):
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_find_product(mock_find_product, mock_parse_deb_file):
     can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json')
     can.parse_files()
     # Test 1
@@ -213,7 +222,8 @@ def test_find_product(mock_find_product):
 
 
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
-def test_parse_node(mock_find_product):
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_parse_node(mock_find_product, mock_parse_deb_file):
     can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json')
     can.parse_files()
     # Test 1
@@ -232,7 +242,8 @@ def test_parse_node(mock_find_product):
     assert can._parse_node(node3) == res3
 
 
-def test_uri_generator():
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_uri_generator(mock_parse_deb_file):
     can = get_canonicalizer('anna-1.58')
     can.parse_files()
     # Test 1
@@ -248,7 +259,8 @@ def test_uri_generator():
 
 
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
-def test_get_uri(mock_find_product):
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_get_uri(mock_find_product, mock_parse_deb_file):
     can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json')
     can.parse_files()
     # Test 1
@@ -287,7 +299,8 @@ def test_get_uri(mock_find_product):
 
 
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
-def test_parse_edge(mock_find_product):
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_parse_edge(mock_find_product, mock_parse_deb_file):
     can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json')
     can.parse_files()
     edge = [
