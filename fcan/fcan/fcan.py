@@ -358,8 +358,9 @@ class C_Canonicalizer:
         can = C_Canonicalizer('directory')
         can.canonicalize()
     """
-    def __init__(self, directory, forge="debian", console_logging=True,
-                 file_logging=False, logging_level='DEBUG', custom_deps=None,
+    def __init__(self, directory, forge="debian", source="",
+                 console_logging=True, file_logging=False,
+                 logging_level='DEBUG', custom_deps=None,
                  product_regex=None, output=None):
         """C_Canonicalizer constructor.
 
@@ -407,7 +408,7 @@ class C_Canonicalizer:
 
         self.forge = forge
         self.product = None
-        self.source = None
+        self.source = source
         self.version = None
         self.architecture = None
         self.timestamp = None
@@ -610,11 +611,14 @@ def main():
                         default=None, help='custom user defined dependencies')
     parser.add_argument('-r', '--regex-product', dest='regex_product',
                         default=None, help='regex to match product\'s files')
+    parser.add_argument('-s', '--source',
+                        default='', help='product\'s source')
     parser.add_argument('-o', '--output', dest='output', default=None,
                         help='file to save the canonicalized call graph')
     args = parser.parse_args()
     can = C_Canonicalizer(args.directory,
                           forge=args.forge,
+                          source=args.source,
                           console_logging=args.verbose,
                           file_logging=args.file_logging,
                           logging_level=args.logging_level,
