@@ -488,6 +488,7 @@ class C_Canonicalizer:
     def save(self):
         data = {
             'product': self.product,
+            'source': self.source,
             'version': self.version,
             'architecture': self.architecture,
             'forge': self.forge,
