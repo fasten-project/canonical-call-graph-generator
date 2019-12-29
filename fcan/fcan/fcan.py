@@ -374,6 +374,7 @@ class C_Canonicalizer:
             changelog: changelog file.
             forge: Product's forge.
             product: Product's name.
+            source: Source's name.
             version: Product's version (string).
             version: Product's architecture.
             timestamp: seconds form epoch.
@@ -399,6 +400,7 @@ class C_Canonicalizer:
 
         self.forge = forge
         self.product = None
+        self.source = None
         self.version = None
         self.architecture = None
         self.timestamp = None
@@ -441,6 +443,7 @@ class C_Canonicalizer:
         # deb file
         dpkg = parse_deb_file(self.deb)
         self.product = dpkg['Package']
+        self.source = dpkg['Source']
         self.version = dpkg['Version']
         self.architecture = dpkg['Architecture']
         # changelog
@@ -478,6 +481,7 @@ class C_Canonicalizer:
     def save(self):
         data = {
             'product': self.product,
+            'source': self.source,
             'version': self.version,
             'architecture': self.architecture,
             'forge': self.forge,
