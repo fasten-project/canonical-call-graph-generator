@@ -24,7 +24,8 @@
 import os
 from fcan.fcan import safe_split, extract_text, parse_dependency, find_nth,\
         get_product_names, find_file, find_files, check_custom_deps,\
-        use_mvn_spec, parse_changelog, convert_debian_time_to_unix
+        use_mvn_spec, parse_changelog, convert_debian_time_to_unix,\
+        canonicalize_path
 
 
 def get_directory(filename):
@@ -161,3 +162,26 @@ def test_convert_debian_time_to_unix():
     d1 = "Sun, 05 Mar 2017 12:26:20 +0100"
     epoch1 = "1488709580"
     assert convert_debian_time_to_unix(d1) == epoch1
+
+
+def test_canonicalize_path():
+    paths = [
+        './libmisc/walk_tree.c',
+        '/usr/include/cdebconf/debconfclient.h',
+        '/build/anna-oYTzHL/anna-1.71/anna.c',
+        '/build/mlocate-OLrxYu/mlocate-0.26/build/../src/conf.c',
+        '/build/mlocate-OLrxYu/mlocate-0.26/build/gnulib/lib/../../../gnulib/lib/mbuiter.h',
+        './build/gnulib/lib/../../../gnulib/lib/mbuiter.h',
+        'build/gnulib/lib/../../../gnulib/lib/mbuiter.h'
+    ]
+    results = [
+        'libmisc/walk_tree.c',
+        '/usr/include/cdebconf/debconfclient.h',
+        'anna.c',
+        'src/conf.c',
+        'gnulib/lib/mbuiter.h',
+        'gnulib/lib/mbuiter.h',
+        'gnulib/lib/mbuiter.h'
+    ]
+    for p, r in zip(paths, results):
+        assert canonicalize_path(p) == r
