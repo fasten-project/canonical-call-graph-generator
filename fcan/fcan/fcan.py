@@ -361,7 +361,7 @@ class C_Canonicalizer:
     def __init__(self, directory, forge="debian", source="",
                  console_logging=True, file_logging=False,
                  logging_level='DEBUG', custom_deps=None,
-                 product_regex=None, output=None, tool=""):
+                 product_regex=None, output=None, analyzer=""):
         """C_Canonicalizer constructor.
 
         Args:
@@ -389,7 +389,7 @@ class C_Canonicalizer:
             dependencies: Product's dependencies (dict or list).
             can_graph: Canonicalized Call-Graph.
             orphan_deps: Dependencies that are not declared in deb.
-            tool: Tool used to generate the call graphs.
+            analyzer: Analyzer used to generate the call graphs.
         Raise:
             CanonicalizationError: if .txt or .deb files not found.
         """
@@ -414,7 +414,7 @@ class C_Canonicalizer:
         self.architecture = None
         self.timestamp = None
         self.can_graph = []
-        self.tool = tool
+        self.analyzer = analyzer
 
         # Nodes that contain one of those values are skipped from the canonical
         # Call-Graph
@@ -497,7 +497,7 @@ class C_Canonicalizer:
             'timestamp': self.timestamp,
             'depset': self.dependencies,
             'graph': self.can_graph,
-            'tool': self.tool
+            'analyzer': self.analyzer
         }
         with open(self.output, 'w') as fdr:
             json.dump(data, fdr)
@@ -619,8 +619,8 @@ def main():
                         default='', help='product\'s source')
     parser.add_argument('-o', '--output', dest='output', default=None,
                         help='file to save the canonicalized call graph')
-    parser.add_argument('-t', '--tool', default='',
-                        help='Tool used to generate the call graphs')
+    parser.add_argument('-a', '--analyzer', default='',
+                        help='Analyzer used to generate the call graphs')
     args = parser.parse_args()
     can = C_Canonicalizer(args.directory,
                           forge=args.forge,
@@ -630,7 +630,7 @@ def main():
                           logging_level=args.logging_level,
                           custom_deps=args.custom_deps,
                           product_regex=args.regex_product,
-                          tool=args.tool
+                          analyzer=args.analyzer
                          )
     can.canonicalize()
 
