@@ -527,8 +527,8 @@ class C_Canonicalizer:
             self.logger.addHandler(file_h)
 
     def _parse_edge(self, edge):
-        node1 = self._get_uri(edge[0])
-        node2 = self._get_uri(edge[1])
+        node1 = canonicalize_path(self._get_uri(edge[0]))
+        node2 = canonicalize_path(self._get_uri(edge[1]))
         return (node1, node2)
 
     def _get_uri(self, node):
