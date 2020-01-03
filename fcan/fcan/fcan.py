@@ -552,9 +552,14 @@ class C_Canonicalizer:
         scope, path, entity = node.split(':')
         product = self._find_product(path)
         if scope == 'static':
-            namespace = path[:path.rfind('/')]
-            namespace = canonicalize_path(namespace)
+            namespace = canonicalize_path(path)
             # TODO Create pct_encode function
+            slash = namespace.rfind('/')
+            # The main directory of its product
+            if slash <= 0:
+                namespace = '.'
+            else:
+                namespace = namespace[:slash]
             namespace = namespace.replace('/', '%2F')
             function = path[path.rfind('/')+1:] + ';' + entity + '()'
         else:
