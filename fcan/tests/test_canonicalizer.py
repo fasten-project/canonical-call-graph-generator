@@ -94,6 +94,7 @@ dependencies = [{'forge': 'debian', 'product': 'libdebian-installer4-udeb',
 
 can_graph = [
     ('/C/main()', '//libc6-dev/C/getenv()'),
+    ('/src/anna.c;main()', '//libc6-dev/C/getenv()'),
     ('/C/set_retriever()',
      '//libdebconfclient0-dev/%2Fusr%2Finclude%2Fcdebconf/' +
      'debconfclient.h;debconf_set()'),
