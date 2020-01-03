@@ -530,8 +530,8 @@ class C_Canonicalizer:
             self.logger.addHandler(file_h)
 
     def _parse_edge(self, edge):
-        node1 = canonicalize_path(self._get_uri(edge[0]))
-        node2 = canonicalize_path(self._get_uri(edge[1]))
+        node1 = self._get_uri(edge[0])
+        node2 = self._get_uri(edge[1])
         return (node1, node2)
 
     def _get_uri(self, node):
@@ -553,6 +553,7 @@ class C_Canonicalizer:
         product = self._find_product(path)
         if scope == 'static':
             namespace = path[:path.rfind('/')]
+            namespace = canonicalize_path(namespace)
             # TODO Create pct_encode function
             namespace = namespace.replace('/', '%2F')
             function = path[path.rfind('/')+1:] + ';' + entity + '()'
