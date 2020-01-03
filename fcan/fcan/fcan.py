@@ -416,6 +416,9 @@ class C_Canonicalizer:
         self.can_graph = []
         self.analyzer = analyzer
 
+        # A cache to minimize the calls of find_product
+        self.paths_lookup = {}
+
         # Nodes that contain one of those values are skipped from the canonical
         # Call-Graph
         self.rules = ['UNDEF']
@@ -559,7 +562,11 @@ class C_Canonicalizer:
         return product, namespace, function
 
     def _find_product(self, path):
-        stdout, status = find_product(path)
+        if path not in self.paths_lookup:
+            stdout, status = find_product(path)
+            self.paths_lookup[path] = (stdout, status)
+        else:
+            stdout, status = self.paths_lookup[path]
         if status == 0:
             return stdout.decode(encoding='utf-8').split(':')[0]
         if re.match(r'' + self.product_regex, path):
