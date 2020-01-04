@@ -584,6 +584,8 @@ class C_Canonicalizer:
             product = check_custom_deps(path, self.custom_deps)
             if product is not None:
                 return product
+        if not path.startswith('/'):
+            return self.product
         self.logger.debug("UNDEF match: %s", path)
         return "UNDEF"
 
