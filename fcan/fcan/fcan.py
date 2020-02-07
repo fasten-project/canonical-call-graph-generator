@@ -430,7 +430,7 @@ class C_Canonicalizer:
 
         # Nodes that contain one of those values are skipped from the canonical
         # Call-Graph
-        self.rules = ['UNDEF']
+        self.rules = ['NULL']
 
         self.dependencies = []
         # dict of dicts
@@ -603,8 +603,8 @@ class C_Canonicalizer:
                 return product
         if not path.startswith('/'):
             return self.product
-        self.logger.debug("UNDEF match: %s", path)
-        return "UNDEF"
+        self.logger.debug("NULL match: %s", path)
+        return "NULL"
 
     def _add_orphan_dependenies(self):
         """Add products that dpkg detected but we don't have them as deps.
