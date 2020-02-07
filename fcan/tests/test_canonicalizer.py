@@ -100,6 +100,7 @@ dependencies = [{'forge': 'debian', 'product': 'libdebian-installer4-udeb',
                  'constraints': '', 'architectures': ''}]
 
 
+# anna-1.58
 can_graph = [
     ('/C/main()', '//libc6-dev/C/getenv()'),
     ('/./anna.c;foo()', '//libc6-dev/C/getenv()'),
@@ -112,6 +113,17 @@ can_graph = [
     ('/C/main()', '//libdebian-installer4-dev/' +
      '%2Fusr%2Finclude%2Fdebian-installer%2Fsystem/packages.h;' +
      'di_system_packages_status_read_file()')
+]
+
+
+# anna-1.71
+can_graph2 = [
+    ('/C/set_retriever()', '//libdebconfclient0-dev/%2Fusr%2Finclude%2F' +
+     'cdebconf/debconfclient.h;debconf_set()'),
+    ('/C/set_retriever()', '/C/xasprintf()'),
+    ('/C/retriever_retrieve()', '//UNDEFINED/C/free()'),
+    ('/C/retriever_retrieve()', '/C/get_retriever()'),
+    ('/C/is_installed()', '//UNDEFINED/C/di_packages_get_package()')
 ]
 
 
@@ -142,6 +154,17 @@ def test_gen_can_cgraph(mock_find_product, mock_parse_deb_file):
     can.parse_files()
     can.gen_can_cgraph()
     assert can_graph == can.can_graph
+
+
+@patch("fcan.fcan.find_product", new_callable=find_product_mock)
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_gen_can_cgraph_defined(mock_find_product, mock_parse_deb_file):
+    can = get_canonicalizer_with_custom_deps(
+        'anna-1.71-defined', 'custom_deps.json', defined_bit=True
+    )
+    can.parse_files()
+    can.gen_can_cgraph()
+    assert can_graph2 == can.can_graph
 
 
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
@@ -299,6 +322,22 @@ def test_uri_generator(mock_parse_deb_file):
     assert can._uri_generator(node2[0], node2[1], node2[2]) == res2
 
 
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_uri_generator(mock_parse_deb_file):
+    can = get_canonicalizer_with_custom_deps(
+        'anna-1.71-defined', 'custom_deps.json', defined_bit=True
+    )
+    can.parse_files()
+    # Test 1
+    node1 = ('UNDEFINED', 'C', 'free()')
+    res1 = '//UNDEFINED/C/free()'
+    assert can._uri_generator(node1[0], node1[1], node1[2]) == res1
+    # Test 2
+    node2 = ('UNDEFINED', 'C', 'di_packages_get_package()')
+    res2 = '//UNDEFINED/C/di_packages_get_package()'
+    assert can._uri_generator(node2[0], node2[1], node2[2]) == res2
+
+
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
 @patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
 def test_get_uri(mock_find_product, mock_parse_deb_file):
@@ -320,7 +359,7 @@ def test_get_uri(mock_find_product, mock_parse_deb_file):
     assert can._get_uri(node3) == res3
     # Test 4
     node4 = 'static:/usr/include/random_proj/utils.h:rand'
-    res4 = '//UNDEF/%2Fusr%2Finclude%2Frandom_proj/utils.h;rand()'
+    res4 = '//NULL/%2Fusr%2Finclude%2Frandom_proj/utils.h;rand()'
     assert can._get_uri(node4) == res4
     # Test 5
     assert 'libc6-dev' not in can.orphan_deps
