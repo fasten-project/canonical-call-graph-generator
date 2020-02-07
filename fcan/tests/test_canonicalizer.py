@@ -57,6 +57,13 @@ class parse_deb_file_mock(Mock):
                 'Architecture': 'amd64',
                 'Depends': 'libc6-udeb (>= 2.24), libdebconfclient0-udeb, libdebian-installer4-udeb (>= 0.110), cdebconf-udeb'
             }
+        if filename == './tests/data/anna-1.71-defined/anna_1.71_amd64.udeb':
+            return {
+                'Package': 'anna',
+                'Version': '1.71',
+                'Architecture': 'amd64',
+                'Depends': 'libc6-udeb (>= 2.24), libdebconfclient0-udeb, libdebian-installer4-udeb (>= 0.110), cdebconf-udeb'
+            }
         return {}
 
 
@@ -72,11 +79,12 @@ def get_canonicalizer(package):
     return C_Canonicalizer(directory, console_logging=False)
 
 
-def get_canonicalizer_with_custom_deps(package, deps, parse=False):
+def get_canonicalizer_with_custom_deps(package, deps, parse=False,
+                                       defined_bit=False):
     directory = get_directory(package)
     custom_deps = get_directory(deps)
     can = C_Canonicalizer(directory, console_logging=False,
-                          custom_deps=custom_deps)
+                          custom_deps=custom_deps, defined_bit=defined_bit)
     if parse:
         can.parse_files()
     return can
@@ -242,6 +250,37 @@ def test_parse_node(mock_find_product, mock_parse_deb_file):
     res3 = ('libdebconfclient0-dev', '%2Fusr%2Finclude%2Fcdebconf',
             'debconfclient.h;debconf_set()')
     assert can._parse_node(node3) == res3
+
+
+@patch("fcan.fcan.find_product", new_callable=find_product_mock)
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_parse_node_defined(mock_find_product, mock_parse_deb_file):
+    can = get_canonicalizer_with_custom_deps(
+        'anna-1.71-defined', 'custom_deps.json', defined_bit=True
+    )
+    can.parse_files()
+    # Test 1
+    node1 = 'public:1:/build/anna-xjzj1e/anna-1.58/retriever.c:set_retriever'
+    res1 = ('anna', 'C', 'set_retriever()')
+    assert can._parse_node(node1) == res1
+    # Test 2
+    node2 = 'static:1:/usr/local/include/cscout/csmake-pre-defs.h:__attribute__'
+    res2 = ('CScout', '%2Fusr%2Flocal%2Finclude%2Fcscout',
+            'csmake-pre-defs.h;__attribute__()')
+    assert can._parse_node(node2) == res2
+    # Test 3
+    node3 = 'static:1:/usr/include/cdebconf/debconfclient.h:debconf_set'
+    res3 = ('libdebconfclient0-dev', '%2Fusr%2Finclude%2Fcdebconf',
+            'debconfclient.h;debconf_set()')
+    assert can._parse_node(node3) == res3
+    # Test 4
+    node4 = 'public:0:/usr/include/stdlib.h:free'
+    res4 = ('UNDEFINED', 'C', 'free()')
+    assert can._parse_node(node4) == res4
+    # Test 5
+    node5 = 'public:0:/usr/include/debian-installer/packages.h:di_packages_get_package'
+    res5 = ('UNDEFINED', 'C', 'di_packages_get_package()')
+    assert can._parse_node(node5) == res5
 
 
 @patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
