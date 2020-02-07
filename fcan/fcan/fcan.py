@@ -38,6 +38,10 @@ import subprocess as sp
 from datetime import datetime
 
 
+# Special value to give to nodes when the defined bit is off
+UNDEFINED_PRODUCT = 'UNDEFINED'
+
+
 class CanonicalizationError(Exception):
     """Custom exception for Canonicalizers.
     """
@@ -361,7 +365,9 @@ class C_Canonicalizer:
     def __init__(self, directory, forge="debian", source="",
                  console_logging=True, file_logging=False,
                  logging_level='DEBUG', custom_deps=None,
-                 product_regex=None, output=None, analyzer=""):
+                 product_regex=None, output=None, analyzer="",
+                 defined_bit=False
+                ):
         """C_Canonicalizer constructor.
 
         Args:
@@ -375,6 +381,9 @@ class C_Canonicalizer:
             custom_deps: User defined dependencies and constraints
             product_regex: Regex to match products files
             output: File to save the canonicalized call graph
+            analyzer: Analyzer used to generate the call graphs.
+            defined_bit: Input nodes have a bit to declare if a function is
+                defined or not.
         Attributes:
             directory: directory path with analysis results.
             cgraph: Call-Graph filename.
@@ -389,7 +398,6 @@ class C_Canonicalizer:
             dependencies: Product's dependencies (dict or list).
             can_graph: Canonicalized Call-Graph.
             orphan_deps: Dependencies that are not declared in deb.
-            analyzer: Analyzer used to generate the call graphs.
         Raise:
             CanonicalizationError: if .txt or .deb files not found.
         """
@@ -415,6 +423,7 @@ class C_Canonicalizer:
         self.timestamp = None
         self.can_graph = []
         self.analyzer = analyzer
+        self.defined_bit = defined_bit
 
         # A cache to minimize the calls of find_product
         self.paths_lookup = {}
@@ -537,7 +546,7 @@ class C_Canonicalizer:
     def _get_uri(self, node):
         product, namespace, function = self._parse_node(node)
         if (product not in get_product_names(self.dependencies) and
-                product not in self.rules):
+                product not in self.rules and product != UNDEFINED_PRODUCT):
             if product != self.product:
                 self.orphan_deps.add(product)
         return self._uri_generator(product, namespace, function)
@@ -549,8 +558,16 @@ class C_Canonicalizer:
         return '{}/{}/{}'.format(forge_product_version, namespace, function)
 
     def _parse_node(self, node):
-        scope, path, entity = node.split(':')
-        product = self._find_product(path)
+        is_defined = True
+        if self.defined_bit:
+            scope, is_defined, path, entity = node.split(':')
+            is_defined = False if is_defined == '0' else True
+        else:
+            scope, path, entity = node.split(':')
+        if is_defined:
+            product = self._find_product(path)
+        else:
+            product = UNDEFINED_PRODUCT
         if scope == 'static':
             namespace = canonicalize_path(path)
             # TODO Create pct_encode function
@@ -636,6 +653,14 @@ def main():
                         help='file to save the canonicalized call graph')
     parser.add_argument('-a', '--analyzer', default='',
                         help='Analyzer used to generate the call graphs')
+    parser.add_argument('-d', '--defined-bit', dest='defined_bit',
+                        action='store_true',
+                        help=('Check for bit that declares if a function is '
+                              'defined. In this cases a node should have the '
+                              'following format: '
+                              'static|public:0|1:path:function_name'
+                             )
+                       )
     args = parser.parse_args()
     can = C_Canonicalizer(args.directory,
                           forge=args.forge,
@@ -645,7 +670,8 @@ def main():
                           logging_level=args.logging_level,
                           custom_deps=args.custom_deps,
                           product_regex=args.regex_product,
-                          analyzer=args.analyzer
+                          analyzer=args.analyzer,
+                          defined_bit=args.defined_bit
                          )
     can.canonicalize()
 
