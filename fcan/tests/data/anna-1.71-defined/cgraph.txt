@@ -1,0 +1,7 @@
+static:1:/usr/local/include/cscout/csmake-pre-defs.h:__builtin_object_size static:1:/usr/include/x86_64-linux-gnu/sys/cdefs.h:__va_arg_pack
+public:1:/build/anna-iOrFWF/anna-1.71/retriever.c:set_retriever static:1:/usr/include/cdebconf/debconfclient.h:debconf_set
+public:1:/build/anna-iOrFWF/anna-1.71/retriever.c:set_retriever public:1:/build/anna-iOrFWF/anna-1.71/util.c:xasprintf
+public:1:/build/anna-iOrFWF/anna-1.71/retriever.c:retriever_retrieve public:0:/usr/include/stdlib.h:free
+public:1:/build/anna-iOrFWF/anna-1.71/retriever.c:retriever_retrieve public:1:/build/anna-iOrFWF/anna-1.71/retriever.c:get_retriever
+public:1:/build/anna-iOrFWF/anna-1.71/util.c:is_installed public:0:/usr/include/debian-installer/packages.h:di_packages_get_package
+public:1:/usr/include/x86_64-linux-gnu/bits/fcntl2.h:open static:1:/usr/local/include/cscout/csmake-pre-defs.h:__builtin_constant_p
