@@ -657,7 +657,7 @@ def main():
     parser.add_argument('-d', '--defined-bit', dest='defined_bit',
                         action='store_true',
                         help=('Check for bit that declares if a function is '
-                              'defined. In this cases a node should have the '
+                              'defined. In this case a node should have the '
                               'following format: '
                               'static|public:0|1:path:function_name'
                              )
