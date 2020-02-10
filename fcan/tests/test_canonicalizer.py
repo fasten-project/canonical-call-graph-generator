@@ -179,10 +179,11 @@ def test_save(mock_find_product, mock_parse_deb_file):
     with open(filename, 'r') as f:
         res = json.load(f)
     final_dependencies = copy.deepcopy(dependencies)
-    final_dependencies.append({"architectures": "", "constraints": "",
-                               "forge": "debian", "product": "libc6-dev"})
+    environment_deps = [{"architectures": "", "constraints": "",
+                         "forge": "debian", "product": "libc6-dev"}]
     for dep in final_dependencies:
         assert dep in res['depset']
+    assert environment_deps[0] in res['environment_depset']
     for node in can_graph:
         assert list(node) in res['graph']
     assert res['product'] == 'anna'
@@ -202,14 +203,15 @@ def test_canonicalize(mock_find_product, mock_parse_deb_file):
     with open(filename, 'r') as f:
         res = json.load(f)
     final_dependencies = copy.deepcopy(dependencies)
-    final_dependencies.append({"architectures": "", "constraints": "",
-                               "forge": "debian", "product": "libc6-dev"})
     final_dependencies.append({'product': "my_dep", 'forge': "github",
                                'constraints': "", 'architecture': ""})
+    environment_deps = [{"architectures": "", "constraints": "",
+                         "forge": "debian", "product": "libc6-dev"}]
     final_can_graph = copy.deepcopy(can_graph)
     final_can_graph.append(('/C/main()', '//my_dep/C/sum()'))
     for dep in final_dependencies:
         assert dep in res['depset']
+    assert environment_deps[0] in res['environment_depset']
     for node in final_can_graph:
         assert list(node) in res['graph']
     assert res['product'] == 'anna'
@@ -220,15 +222,14 @@ def test_canonicalize(mock_find_product, mock_parse_deb_file):
 
 
 @patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
-def test_add_orphan_dependenies(mock_parse_deb_file):
+def test_add_environment_dependenies(mock_parse_deb_file):
     can = get_canonicalizer('anna-1.58')
     can.parse_files()
-    can.orphan_deps.add('dep')
-    can._add_orphan_dependenies()
-    dependencies.append({'architectures': '', 'constraints': '',
-                         'forge': 'debian', 'product': 'dep'})
-    for dep in dependencies:
-        assert dep in can.dependencies
+    can.environment_deps.add('dep')
+    environment_deps = can._get_environment_dependenies()
+    temp = {'architectures': '', 'constraints': '',
+            'forge': 'debian', 'product': 'dep'}
+    assert environment_deps[0] == temp
 
 
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
@@ -362,11 +363,11 @@ def test_get_uri(mock_find_product, mock_parse_deb_file):
     res4 = '//NULL/%2Fusr%2Finclude%2Frandom_proj/utils.h;rand()'
     assert can._get_uri(node4) == res4
     # Test 5
-    assert 'libc6-dev' not in can.orphan_deps
+    assert 'libc6-dev' not in can.environment_deps
     node5 = 'public:/usr/include/stdlib.h:getenv'
     res5 = '//libc6-dev/C/getenv()'
     assert can._get_uri(node5) == res5
-    assert 'libc6-dev' in can.orphan_deps
+    assert 'libc6-dev' in can.environment_deps
     # Test 6
     can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json',
                                              True)
