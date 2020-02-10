@@ -22,8 +22,7 @@ public:/build/anna-xjzj1e/anna-1.58/retriever.c:set_retriever static:/usr/includ
 ...
 ```
 
-* a Debian source control file ([.dsc](https://wiki.debian.org/dsc)).
-* at least a [.deb](https://wiki.debian.org/deb) or a
+* a [.deb](https://wiki.debian.org/deb) or a
 [.udeb](https://wiki.debian.org/udeb) file.
 
 You can find an example directory [here](https://github.com/fasten-project/canonical-call-graph-generator/tree/master/fcan/tests/data/anna-1.58).
@@ -38,7 +37,7 @@ Internals
 ---------
 
 * **Find dependencies:** To find dependencies we parse the .dep and .udeb files
-with the pydpkg library. We can also get the dependencies from the
+with the dpkg tool. We can also get the dependencies from the
 user-specified custom deps file.
 * **Find the product for each node:** We use the ```dpkg``` tool with
 the switch ```-S``` and the path of each node to detect in which product
@@ -61,6 +60,8 @@ Each object has a key forge, a key product, a key constraints, and a
 key architecture. In the constaints field we use Maven's [Dependency Version
 Requirement Specification](https://maven.apache.org/pom.html#Dependency_Version_Requirement_Specification)
 instead of Debian's. All those details come from the .deb files or user input.
+* __environment_depset__: Same as __depset__ whereas the proudcts here are
+not declared as dependencies in deb.
 * __graph__: A list of pairs of FASTEN schemeless URIs that composed from
 the product, the namespace, and the function name.
 The namespace is 'C' for public functions
@@ -74,7 +75,8 @@ that described in **Input**.
 
 ```
 usage: fcan [-h] [-f FORGE] [-v] [-L] [-l {CRITICAL,ERROR,WARNING,INFO,DEBUG}]
-            [-c CUSTOM_DEPS] [-r REGEX_PRODUCT] [-o OUTPUT]
+            [-c CUSTOM_DEPS] [-r REGEX_PRODUCT] [-s SOURCE] [-o OUTPUT]
+            [-a ANALYZER] [-d]
             directory
 
 Canonicalize Call Graphs to FASTEN Canonical Call Graphs
@@ -95,8 +97,15 @@ optional arguments:
                         custom user defined dependencies
   -r REGEX_PRODUCT, --regex-product REGEX_PRODUCT
                         regex to match product's files
+  -s SOURCE, --source SOURCE
+                        product's source
   -o OUTPUT, --output OUTPUT
                         file to save the canonicalized call graph
+  -a ANALYZER, --analyzer ANALYZER
+                        Analyzer used to generate the call graphs
+  -d, --defined-bit     Check for bit that declares if a function is defined.
+                        In this case a node should have the following format:
+                        static|public:0|1:path:function_name
 ```
 
 * **custom-deps:** A JSON file that consists of JSON objects whereas the
@@ -184,9 +193,11 @@ and [udeb](https://github.com/fasten-project/canonical-call-graph-generator/blob
             "product": "my_dep",
             "constraints": "",
             "architecture": ""
-        },
+        }
+    ],
+    "environment_depset": [
         {
-            "forge": "UNDEFINED",
+            "forge": "debian",
             "product": "libc6-dev",
             "architectures": "",
             "constraints": ""
@@ -229,26 +240,10 @@ python setup.py install
 
 Run CScout analysis and fcan with Docker
 ----------------------------------------
-Make sure you have installed docker and docker-compose, then run the
+Make sure you have installed docker, then run the
 following commands.
 
 ```
-# Clone Repository with Dockerfiles to run CScout to produce Call Graphs
-git clone https://github.com/fasten-project/debian-builder
-cd debian-builder
-# Deactivate buildd and cron daemons
-sed -i '2,3 {s/^/#/}' cscout/init_scripts/daemon.sh
-# Build and run the docker images
-./run_analysis.sh cscout
-# Login to the image
-docker exec -it cscout_cscout_1 bash
-# Change user to buildd
-su buildd
-# Run CScout analysis and produce FASTEN call graph
-sbuild --apt-update --no-apt-upgrade --no-apt-distupgrade --batch --stats-dir=/var/lib/buildd/stats --dist=stretch --sbuild-mode=buildd --arch=amd64 package-name
-# The callgraph will be created in cscout/callgraphs/package-name-version/can_graph.json
-# Stop and remove the container
-cd cscout && docker-compose down -v
 ```
 
 Run tests
