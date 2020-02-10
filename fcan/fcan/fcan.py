@@ -397,7 +397,7 @@ class C_Canonicalizer:
             timestamp: seconds form epoch.
             dependencies: Product's dependencies (dict or list).
             can_graph: Canonicalized Call-Graph.
-            orphan_deps: Dependencies that are not declared in deb.
+            environment_deps: Dependencies that are not declared in deb.
         Raise:
             CanonicalizationError: if .txt or .deb files not found.
         """
@@ -459,7 +459,7 @@ class C_Canonicalizer:
         if self.output is None:
             self.output = self.directory + '/can_cgraph.json'
 
-        self.orphan_deps = set()
+        self.environment_deps = set()
 
     def parse_files(self):
         # deb file
@@ -497,7 +497,6 @@ class C_Canonicalizer:
                      any(r in can_edge[1] for r in self.rules))):
                     continue
                 self.can_graph.append(can_edge)
-        self._add_orphan_dependenies()
 
     def save(self):
         data = {
@@ -508,6 +507,7 @@ class C_Canonicalizer:
             'forge': self.forge,
             'timestamp': self.timestamp,
             'depset': self.dependencies,
+            'environment_depset': self._get_environment_dependenies(),
             'graph': self.can_graph,
             'analyzer': self.analyzer
         }
@@ -548,7 +548,7 @@ class C_Canonicalizer:
         if (product not in get_product_names(self.dependencies) and
                 product not in self.rules and product != UNDEFINED_PRODUCT):
             if product != self.product:
-                self.orphan_deps.add(product)
+                self.environment_deps.add(product)
         return self._uri_generator(product, namespace, function)
 
     def _uri_generator(self, product, namespace, function):
@@ -606,20 +606,21 @@ class C_Canonicalizer:
         self.logger.debug("NULL match: %s", path)
         return "NULL"
 
-    def _add_orphan_dependenies(self):
+    def _get_environment_dependenies(self):
         """Add products that dpkg detected but we don't have them as deps.
 
         Orphan dependencies are probably Essential packages. You can find more
         about essential packages here:
             https://www.debian.org/doc/debian-policy/ch-binary.html#essential-packages
         """
-        for orph in self.orphan_deps:
-            # TODO Handle special cases like libc
-            self.dependencies.append({
+        depset = []
+        for orph in self.environment_deps:
+            depset.append({
                 'forge': 'debian',
                 'product': orph,
                 'architectures': '',
                 'constraints': ''})
+        return depset
 
 
 def main():
