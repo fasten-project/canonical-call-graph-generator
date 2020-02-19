@@ -565,7 +565,11 @@ class C_Canonicalizer:
         else:
             scope, path, entity = node.split(':')
         if is_defined:
-            product = self._find_product(path)
+            if re.match(r'' + self.product_regex, path):
+                product = self.product
+            else:
+                product = UNDEFINED_PRODUCT
+            #  product = self._find_product(path)
         else:
             product = UNDEFINED_PRODUCT
         if scope == 'static':
