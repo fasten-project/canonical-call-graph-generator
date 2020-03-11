@@ -371,6 +371,34 @@ def canonicalize_path(path):
     return path
 
 
+def find_undefined_functions_util(objdump_out):
+    """Find undefined functions from objdump output.
+
+    Args:
+        The output of objdump command.
+
+    Returns:
+        A list that contains function names
+    """
+    return [line.split()[-1] for line in objdump_out if "*UND*" in line]
+
+
+def find_undefined_functions(binary):
+    """Find the undefined functions of a binary.
+
+    The binary could be an executable, a shared library, or a static library.
+    We use the objdump util to find the undefined functions.
+
+    Args:
+        The file path of a binary
+
+    Returns:
+        A list that contains function names
+    """
+    stdout, _ = run_command(['objdump', '-T', binary])
+    return find_undefined_functions_util(stdout)
+
+
 class C_Canonicalizer:
     """A canonicalizer that transforms C Call-Graphs to FASTEN Call-Graphs
 

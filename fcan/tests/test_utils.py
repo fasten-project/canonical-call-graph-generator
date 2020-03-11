@@ -25,7 +25,7 @@ import os
 from fcan.fcan import safe_split, extract_text, parse_dependency, find_nth,\
         get_product_names, find_file, find_files, check_custom_deps,\
         use_mvn_spec, parse_changelog, convert_debian_time_to_unix,\
-        canonicalize_path, run_command
+        canonicalize_path, run_command, find_undefined_functions_util
 
 
 def get_directory(filename):
@@ -195,3 +195,29 @@ def test_run_command():
     assert run_command(['echo', 'hello'])[1] == 0
     assert run_command(['echo111', 'hello'])[0] == ''
     assert run_command(['echo111', 'hello'])[1] == -1
+
+
+def test_find_undefined_functions_util():
+    with open('tests/data/cmds/objdumpout1', 'r') as f:
+        stdout = f.readlines()
+    res = ['getenv', '__snprintf_chk', 'free', '__errno_location', 'unlink',
+           '_ITM_deregisterTMCloneTable', 'di_log',
+           'di_system_packages_parser_info',
+           'di_system_packages_status_parser_info', 'qsort',
+           'di_exec_io_log', 'di_free', 'fclose', 'stpcpy', 'strlen',
+           '__stack_chk_fail', 'di_malloc', 'strchr', 'pclose',
+           'uname', 'close', 'di_system_packages_allocator_alloc',
+           'read', '__libc_start_main', 'fgets', 'strcmp',
+           'di_system_subarch_analyze', '__gmon_start__', 'strtol',
+           'di_exec_shell_full', 'di_malloc0',
+           'di_system_packages_resolve_dependencies_mark_anna',
+           'di_package_version_compare', 'di_package_version_free',
+           '__vasprintf_chk', 'di_realloc',
+           'di_system_package_check_subarchitecture', 'di_hash_table_size',
+           'open', 'popen', 'fopen', 'rename', 'di_packages_get_package',
+           'exit', 'fwrite', '__fprintf_chk', 'di_package_version_parse',
+           '_ITM_registerTMCloneTable', 'strdup',
+           'di_packages_special_read_file', 'strstr', 'debconfclient_new',
+           'di_system_init', '__cxa_finalize'
+    ]
+    assert find_undefined_functions_util(stdout) == res
