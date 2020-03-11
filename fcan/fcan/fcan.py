@@ -194,6 +194,30 @@ def find_files(directory, extensions):
     return list(res)
 
 
+def run_command(arguments, parse_stdout=True):
+    """Run a command
+
+    Args:
+        A list with the arguments to execute. For example ['ls', 'foo']
+
+    Returns:
+        stdout, return status.
+    """
+    try:
+        cmd = sp.Popen(arguments, stdout=sp.PIPE, stderr=sp.STDOUT)
+        stdout, _ = cmd.communicate()
+    except Exception as e:
+        m = "Warning: run_command failed with arguments {} and error {}".format(
+            ' '.join(map(str, arguments)), e
+        )
+        print(m)
+        return '', -1
+    if parse_stdout:
+        stdout = stdout.decode("utf-8").split("\n")
+    status = cmd.returncode
+    return stdout, status
+
+
 def find_product(path):
     """Find the corresponding product of a file.
 
@@ -203,9 +227,7 @@ def find_product(path):
     Returns:
         stdout, return status.
     """
-    cmd = sp.Popen(['dpkg', '-S', path], stdout=sp.PIPE, stderr=sp.STDOUT)
-    stdout, _ = cmd.communicate()
-    status = cmd.returncode
+    stdout, status = run_command(['dpkg', '-S', path], False)
     return stdout, status
 
 
@@ -295,8 +317,7 @@ def parse_deb_file(filename):
         dict: with the following keys; Package, Source, Version, Architecture,
             and Depends (not always)
     """
-    cmd = sp.Popen(['dpkg', '-I', filename], stdout=sp.PIPE, stderr=sp.STDOUT)
-    stdout, _ = cmd.communicate()
+    stdout, _ = run_command(['dpkg', '-I', filename], False)
     # TODO handle errors
     # status = cmd.returncode
     res = {}

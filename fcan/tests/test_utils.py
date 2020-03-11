@@ -25,7 +25,7 @@ import os
 from fcan.fcan import safe_split, extract_text, parse_dependency, find_nth,\
         get_product_names, find_file, find_files, check_custom_deps,\
         use_mvn_spec, parse_changelog, convert_debian_time_to_unix,\
-        canonicalize_path
+        canonicalize_path, run_command
 
 
 def get_directory(filename):
@@ -187,3 +187,11 @@ def test_canonicalize_path():
     ]
     for p, r in zip(paths, results):
         assert canonicalize_path(p) == r
+
+
+def test_run_command():
+    assert run_command(['echo', 'hello'], False)[0] == b'hello\n'
+    assert run_command(['echo', 'hello'])[0] == ['hello', '']
+    assert run_command(['echo', 'hello'])[1] == 0
+    assert run_command(['echo111', 'hello'])[0] == ''
+    assert run_command(['echo111', 'hello'])[1] == -1
