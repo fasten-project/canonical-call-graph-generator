@@ -63,6 +63,7 @@ setup(
     version='0.0.1',
     description='Canonicalize Call Graphs',
     python_requires='>=3.4, <4',
+    install_requires=['python-Levenshtein'],
     setup_requires=['pytest-runner'],
     tests_require=['pytest', 'mock'],
     packages=find_packages(),

@@ -22,10 +22,13 @@
 # under the License.
 #
 import os
+from mock import patch
+from mock import Mock
 from fcan.fcan import safe_split, extract_text, parse_dependency, find_nth,\
         get_product_names, find_file, find_files, check_custom_deps,\
         use_mvn_spec, parse_changelog, convert_debian_time_to_unix,\
-        canonicalize_path, run_command, find_undefined_functions_util
+        canonicalize_path, run_command, find_undefined_functions_util,\
+        find_shared_libs_util, filter_product, match_products
 
 
 def get_directory(filename):
@@ -33,6 +36,20 @@ def get_directory(filename):
         os.path.curdir, 'tests', 'data', filename
     )
     return directory
+
+
+class find_product_mock(Mock):
+    def __call__(self, *args, **kwargs):
+        path = args[0]
+        if path == 'libdebconfclient.so.0':
+            return 'libdebconfclient0', 0
+        elif path == 'libdebian-installer.so.4':
+            return 'libdebian-installer4', 0
+        elif path == 'libc.so.6':
+            return 'libc6', 0
+        elif path == '/lib64/ld-linux-x86-64.so.2':
+            return 'libc6', 0
+        return '', 1
 
 
 def test_safe_split():
@@ -221,3 +238,31 @@ def test_find_undefined_functions_util():
            'di_system_init', '__cxa_finalize'
     ]
     assert find_undefined_functions_util(stdout) == res
+
+
+def test_find_shared_libs_util():
+    with open('tests/data/cmds/lddout', 'r') as f:
+        stdout = f.readlines()
+    res = ['/lib/x86_64-linux-gnu/libdebconfclient.so.0',
+           '/lib/x86_64-linux-gnu/libdebian-installer.so.4',
+           '/lib/x86_64-linux-gnu/libc.so.6', '/lib64/ld-linux-x86-64.so.2'
+    ]
+    assert find_shared_libs_util(stdout) == res
+
+
+@patch("fcan.fcan.find_product", new_callable=find_product_mock)
+def test_filter_product(mock_find_product):
+    with open('tests/data/cmds/lddout', 'r') as f:
+        stdout = f.readlines()
+    res = ['libdebconfclient0', 'libdebian-installer4', 'libc6', 'libc6']
+    init_products = list(filter(None, map(filter_product, stdout)))
+    assert init_products == res
+
+
+def test_match_products():
+    init = ['libdebconfclient0', 'libdebian-installer4', 'libc6', 'libc6']
+    deps = ['libc6-udeb', 'libdebconfclient0-udeb',
+            'libdebian-installer4-udeb', 'cdebconf-udeb']
+    res = ['libdebconfclient0-udeb', 'libdebian-installer4-udeb',
+           'libc6-udeb', 'libc6-udeb']
+    assert match_products(init, deps) == res

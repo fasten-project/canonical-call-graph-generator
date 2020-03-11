@@ -36,6 +36,7 @@ import argparse
 import time
 import subprocess as sp
 from datetime import datetime
+from Levenshtein import ratio
 
 
 # Special value to give to nodes when the defined bit is off
@@ -227,7 +228,8 @@ def find_product(path):
     Returns:
         stdout, return status.
     """
-    stdout, status = run_command(['dpkg', '-S', path], False)
+    stdout, status = run_command(['dpkg', '-S', path])
+    stdout = re.split(':| ', stdout[0])[0]
     return stdout, status
 
 
@@ -397,6 +399,91 @@ def find_undefined_functions(binary):
     """
     stdout, _ = run_command(['objdump', '-T', binary])
     return find_undefined_functions_util(stdout)
+
+
+def filter_shared_libs(line):
+    """Helper function that checks there is a valid shared library in a line
+    """
+    if len(line.split()) == 0:
+        return
+    elif "=>" in line:
+        return line.split('=>')[1].split()[0]
+    elif line.split()[0].startswith('/'):
+        return line.split()[0]
+
+
+def find_shared_libs_util(ldd_out):
+    """Find shared libraries for ldd output.
+
+    Args:
+        The output of ldd command.
+
+    Returns:
+        A list that contains shared libraries names
+    """
+    return list(filter(None, map(filter_shared_libs, ldd_out)))
+
+
+def find_shared_libs(binary):
+    """Find linked shared libraries.
+
+    Args:
+        The file path of a binary
+
+    Returns:
+        A list that contains shared libraries names.
+    """
+    stdout, _ = run_command(['ldd', '-d', binary])
+    return find_shared_libs_util(stdout)
+
+
+def filter_product(line):
+    """Helper functions to find which package contains a shared library
+    from ldd output line.
+    """
+    if len(line.split()) == 0:
+        return
+    elif "=>" in line or line.split()[0].startswith('/'):
+        lib = line.strip().split()[0]
+        stdout, _ = find_product(lib)
+        return stdout
+
+
+def match_products(init_products, test_products):
+    """Match products from one list to products of another list using
+    Levenshtein ratio
+
+    Args:
+        init_products: Usually the dependencies of a Debian package
+        test_products: Usually products found using dpkg
+
+    Returns:
+        A list that contains the match from every product from init_products
+        to test_products.
+    """
+    products = []
+    for package in init_products:
+        match = (0, '')
+        for tpkg in test_products:
+            lev_ratio = ratio(package, tpkg)
+            match = (lev_ratio, tpkg) if lev_ratio > match[0] else match
+        products.append(match[1])
+    return products
+
+
+def find_pkg_of_solib(binary, products):
+    """For each shared library linked to a binary find its package.
+
+    Args:
+        binary: The file path of a binary
+        products: Packages to match to. Usually the dependencies of a package.
+
+    Returns:
+        A list that contains Debian packages names.
+    """
+    stdout, _ = run_command(['ldd', '-d', binary])
+    init_products = list(filter(None, map(filter_product, stdout)))
+    return match_products(init_products, products)
 
 
 class C_Canonicalizer:
