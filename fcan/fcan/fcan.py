@@ -490,12 +490,12 @@ class C_Canonicalizer:
     """A canonicalizer that transforms C Call-Graphs to FASTEN Call-Graphs
 
     You should always run this tool in the environment where the Call-Graph
-    produced. The format of the input must be edge list separated by space.
+    produced. The format of the cgraph must be an edge list separated by space.
 
     **Currently it only supports Debian Packages**
 
     To use:
-        can = C_Canonicalizer('directory')
+        can = C_Canonicalizer('file.deb', 'cgraph.txt', 'changelog')
         can.canonicalize()
     """
     def __init__(self, deb, cgraph, changelog, forge="debian", source="",
@@ -507,8 +507,8 @@ class C_Canonicalizer:
         """C_Canonicalizer constructor.
 
         Args:
-            cgraph: Call-Graph filename.
             deb: deb or udeb filename.
+            cgraph: Call-Graph filename.
             changelog: changelog file.
             forge: The forge of the analyzed package.
             console_logging: Enable logs to appear in stdout.
