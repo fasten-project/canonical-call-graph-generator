@@ -498,8 +498,8 @@ class C_Canonicalizer:
         can = C_Canonicalizer('file.deb', 'cgraph.txt', 'changelog')
         can.canonicalize()
     """
-    def __init__(self, deb, cgraph, changelog, forge="debian", source="",
-                 console_logging=True, file_logging=False,
+    def __init__(self, deb, cgraph, changelog, binaries, forge="debian",
+                 source="", console_logging=True, file_logging=False,
                  logging_level='DEBUG', custom_deps=None,
                  product_regex=None, output=None, analyzer="",
                  defined_bit=False
@@ -510,6 +510,7 @@ class C_Canonicalizer:
             deb: deb or udeb filename.
             cgraph: Call-Graph filename.
             changelog: changelog file.
+            changelog: directory that contains analyzed binaries.
             forge: The forge of the analyzed package.
             console_logging: Enable logs to appear in stdout.
             file_logging: Create a file called debug.log in the 'directory'
@@ -524,6 +525,7 @@ class C_Canonicalizer:
             cgraph: Call-Graph filename.
             deb: deb or udeb filename.
             changelog: changelog file.
+            binaries: list with analyzed binaries.
             forge: Product's forge.
             product: Product's name.
             source: Source's name.
@@ -550,6 +552,10 @@ class C_Canonicalizer:
         if not (os.path.exists(self.changelog) and
                 os.path.getsize(self.changelog) > 0):
             raise CanonicalizationError("changelog file not exist or empty")
+        if not (os.path.exists(binaries) and os.path.isdir(binaries)):
+            raise CanonicalizationError("binaries directory not exist")
+        if not os.listdir(binaries):
+            raise CanonicalizationError("binaries directory is empty")
 
         self.forge = forge
         self.product = None
@@ -623,16 +629,22 @@ class C_Canonicalizer:
     def gen_can_cgraph(self):
         """Generate canonical Call-Graph."""
         with open(self.cgraph, 'r') as fdr:
-            edges = csv.reader(fdr, delimiter=' ')
-            for edge in edges:
-                can_edge = self._parse_edge(edge)
-                # If the product of the first node is not the analyzed or
-                # if the product of either nodes is in rules skip that edge
-                if (can_edge[0].startswith('//') or
-                    (any(r in can_edge[0] for r in self.rules) or
-                     any(r in can_edge[1] for r in self.rules))):
-                    continue
-                self.can_graph.append(can_edge)
+            # An element could be a node declaration, or an edge of the call
+            # graph
+            elements = csv.reader(fdr, delimiter=' ')
+            for el in elements:
+                if len(el) == 1:
+                    self._parse_node_declaration(el)
+                else:
+                    can_edge = self._parse_edge(el)
+                    # If the product of the first node is not the analyzed or
+                    # if the product of either nodes is in rules skip that edge
+                    # FIXME the startswith test must be done outside
+                    if (can_edge[0].startswith('//') or
+                        (any(r in can_edge[0] for r in self.rules) or
+                         any(r in can_edge[1] for r in self.rules))):
+                        continue
+                    self.can_graph.append(can_edge)
 
     def save(self):
         data = {
@@ -674,6 +686,10 @@ class C_Canonicalizer:
             file_h.setFormatter(formatter)
             self.logger.addHandler(file_h)
 
+    def _parse_node_declaration(self, node):
+        pass
+
+
     def _parse_edge(self, edge):
         node1 = self._get_uri(edge[0])
         node2 = self._get_uri(edge[1])
@@ -701,6 +717,7 @@ class C_Canonicalizer:
         else:
             scope, path, entity = node.split(':')
         if is_defined:
+            print(path)
             product = self._find_product(path)
         else:
             product = UNDEFINED_PRODUCT
@@ -769,6 +786,8 @@ def main():
     parser.add_argument('deb', help='deb or udeb file of package')
     parser.add_argument('cgraph', help='edgelist of call graph in txt file')
     parser.add_argument('changelog', help='changelog file of package')
+    parser.add_argument('binaries',
+            help='Directory with analyzed binaries')
     parser.add_argument('-f', '--forge', default='debian', help=(
         'forge of the analyzed project. For example, it could be debian, '
         'or GitHub'))
@@ -804,6 +823,7 @@ def main():
             args.deb,
             args.cgraph,
             args.changelog,
+            args.binaries,
             forge=args.forge,
             source=args.source,
             console_logging=args.verbose,

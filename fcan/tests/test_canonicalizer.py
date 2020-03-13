@@ -79,8 +79,10 @@ def get_canonicalizer(package, deb='udeb', output=None):
     deb = '{}/mydeb.{}'.format(directory, deb)
     cgraph = '{}/cgraph.txt'.format(directory)
     changelog = '{}/changelog'.format(directory)
+    binaries = '{}/binaries'.format(directory)
     return C_Canonicalizer(
-            deb, cgraph, changelog, console_logging=False, output=output
+            deb, cgraph, changelog, binaries,
+            console_logging=False, output=output
     )
 
 
@@ -90,9 +92,11 @@ def get_canonicalizer_with_custom_deps(package, deps, parse=False, output=None,
     deb = '{}/mydeb.{}'.format(directory, deb)
     cgraph = '{}/cgraph.txt'.format(directory)
     changelog = '{}/changelog'.format(directory)
+    binaries = '{}/binaries'.format(directory)
     custom_deps = get_directory(deps)
     can = C_Canonicalizer(
-            deb, cgraph, changelog, console_logging=False, output=output,
+            deb, cgraph, changelog, binaries,
+            console_logging=False, output=output,
             custom_deps=custom_deps, defined_bit=defined_bit
     )
     if parse:
