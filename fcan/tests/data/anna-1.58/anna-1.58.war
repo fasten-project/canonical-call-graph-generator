@@ -1,142 +1,0 @@
-No options file found; will use default options.
-No ACL found.  Only localhost access will be allowed.
-Processing project anna
-Processing /build/anna-xjzj1e/anna-1.58/retriever.c
-/build/anna-xjzj1e/anna-1.58/make.cs:93: warning: Duplicate (different) macro definition of macro __has_include_next
-Done processing /build/anna-xjzj1e/anna-1.58/retriever.c
-Processing /build/anna-xjzj1e/anna-1.58/anna.c
-/build/anna-xjzj1e/anna-1.58/make.cs:379: warning: Duplicate (different) macro definition of macro __has_include_next
-Done processing /build/anna-xjzj1e/anna-1.58/anna.c
-Processing /build/anna-xjzj1e/anna-1.58/util.c
-/build/anna-xjzj1e/anna-1.58/make.cs:665: warning: Duplicate (different) macro definition of macro __has_include_next
-Done processing /build/anna-xjzj1e/anna-1.58/util.c
-Done processing project anna
-
-Processing project /build/anna-xjzj1e/anna-1.58/anna
-Processing /build/anna-xjzj1e/anna-1.58/retriever.c
-/build/anna-xjzj1e/anna-1.58/make.cs:958: warning: Duplicate (different) macro definition of macro __has_include_next
-Done processing /build/anna-xjzj1e/anna-1.58/retriever.c
-Processing /build/anna-xjzj1e/anna-1.58/anna.c
-/build/anna-xjzj1e/anna-1.58/make.cs:1244: warning: Duplicate (different) macro definition of macro __has_include_next
-Done processing /build/anna-xjzj1e/anna-1.58/anna.c
-Processing /build/anna-xjzj1e/anna-1.58/util.c
-/build/anna-xjzj1e/anna-1.58/make.cs:1530: warning: Duplicate (different) macro definition of macro __has_include_next
-Done processing /build/anna-xjzj1e/anna-1.58/util.c
-Done processing project /build/anna-xjzj1e/anna-1.58/anna
-
-Post-processing /build/anna-xjzj1e/anna-1.58/anna.c
-Post-processing /build/anna-xjzj1e/anna-1.58/anna.h
-Post-processing /build/anna-xjzj1e/anna-1.58/make.cs
-Post-processing /build/anna-xjzj1e/anna-1.58/retriever.c
-Post-processing /build/anna-xjzj1e/anna-1.58/retriever.h
-Post-processing /build/anna-xjzj1e/anna-1.58/util.c
-Post-processing /build/anna-xjzj1e/anna-1.58/util.h
-Post-processing /usr/include/_G_config.h
-Post-processing /usr/include/alloca.h
-Post-processing /usr/include/asm-generic/errno-base.h
-Post-processing /usr/include/asm-generic/errno.h
-Post-processing /usr/include/cdebconf/debconfclient.h
-Post-processing /usr/include/debian-installer.h
-Post-processing /usr/include/debian-installer/config.h
-Post-processing /usr/include/debian-installer/exec.h
-Post-processing /usr/include/debian-installer/hash.h
-Post-processing /usr/include/debian-installer/list.h
-Post-processing /usr/include/debian-installer/log.h
-Post-processing /usr/include/debian-installer/mem.h
-Post-processing /usr/include/debian-installer/mem_chunk.h
-Post-processing /usr/include/debian-installer/package.h
-Post-processing /usr/include/debian-installer/packages.h
-Post-processing /usr/include/debian-installer/parser.h
-Post-processing /usr/include/debian-installer/parser_rfc822.h
-Post-processing /usr/include/debian-installer/release.h
-Post-processing /usr/include/debian-installer/slist.h
-Post-processing /usr/include/debian-installer/string.h
-Post-processing /usr/include/debian-installer/system/devfs.h
-Post-processing /usr/include/debian-installer/system/dpkg.h
-Post-processing /usr/include/debian-installer/system/packages.h
-Post-processing /usr/include/debian-installer/system/prebaseconfig.h
-Post-processing /usr/include/debian-installer/system/subarch.h
-Post-processing /usr/include/debian-installer/system/utils.h
-Post-processing /usr/include/debian-installer/tree.h
-Post-processing /usr/include/debian-installer/types.h
-Post-processing /usr/include/debian-installer/utils.h
-Post-processing /usr/include/endian.h
-Post-processing /usr/include/errno.h
-Post-processing /usr/include/fcntl.h
-Post-processing /usr/include/features.h
-Post-processing /usr/include/getopt.h
-Post-processing /usr/include/libio.h
-Post-processing /usr/include/linux/errno.h
-Post-processing /usr/include/signal.h
-Post-processing /usr/include/stdc-predef.h
-Post-processing /usr/include/stdint.h
-Post-processing /usr/include/stdio.h
-Post-processing /usr/include/stdlib.h
-Post-processing /usr/include/string.h
-Post-processing /usr/include/time.h
-Post-processing /usr/include/unistd.h
-Post-processing /usr/include/wchar.h
-Post-processing /usr/include/x86_64-linux-gnu/asm/errno.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/byteswap-16.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/byteswap.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/confname.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/endian.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/environments.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/errno.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/fcntl.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/fcntl2.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/posix_opt.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/select.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/select2.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/sigaction.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/sigcontext.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/siginfo.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/signum.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/sigset.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/sigstack.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/sigthread.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/stat.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/stdio.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/stdio2.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/stdio_lim.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/stdlib-float.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/stdlib.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/string.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/string2.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/string3.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/sys_errlist.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/time.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/types.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/typesizes.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/uio.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/unistd.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/utsname.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/waitflags.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/waitstatus.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/wchar.h
-Post-processing /usr/include/x86_64-linux-gnu/bits/wordsize.h
-Post-processing /usr/include/x86_64-linux-gnu/gnu/stubs-64.h
-Post-processing /usr/include/x86_64-linux-gnu/gnu/stubs.h
-Post-processing /usr/include/x86_64-linux-gnu/sys/cdefs.h
-Post-processing /usr/include/x86_64-linux-gnu/sys/select.h
-Post-processing /usr/include/x86_64-linux-gnu/sys/stat.h
-Post-processing /usr/include/x86_64-linux-gnu/sys/sysmacros.h
-Post-processing /usr/include/x86_64-linux-gnu/sys/types.h
-Post-processing /usr/include/x86_64-linux-gnu/sys/ucontext.h
-Post-processing /usr/include/x86_64-linux-gnu/sys/utsname.h
-Post-processing /usr/include/x86_64-linux-gnu/sys/wait.h
-Post-processing /usr/include/xlocale.h
-Post-processing /usr/lib/gcc/x86_64-linux-gnu/6/include/stdarg.h
-Post-processing /usr/lib/gcc/x86_64-linux-gnu/6/include/stdbool.h
-Post-processing /usr/lib/gcc/x86_64-linux-gnu/6/include/stddef.h
-Post-processing /usr/lib/gcc/x86_64-linux-gnu/6/include/stdint.h
-Post-processing /usr/local/include/cscout/csmake-post-defs.h
-Post-processing /usr/local/include/cscout/csmake-pre-defs.h
-Processing identifiers
-1%2%3%4%5%6%7%8%9%10%11%12%13%14%15%16%17%18%19%20%21%22%23%24%25%26%27%28%29%30%31%32%33%34%35%36%37%38%39%40%41%42%43%44%45%46%47%48%49%50%51%52%53%54%55%56%57%58%59%60%61%62%63%64%65%66%67%68%69%70%71%72%73%74%75%76%77%78%79%80%81%82%83%84%85%86%87%88%89%90%91%92%93%94%95%96%97%98%99%100%
-warning: 5426 conditionally compiled writable lines
-(out of a total of 21884 writable lines) were not processed
-Producing call graphs for: cgraph.txt?all=1 

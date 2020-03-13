@@ -50,14 +50,14 @@ class find_product_mock(Mock):
 class parse_deb_file_mock(Mock):
     def __call__(self, *args, **kwargs):
         filename = args[0]
-        if filename == './tests/data/anna-1.58/anna_1.58_amd64.udeb':
+        if filename == './tests/data/anna-1.58/mydeb.udeb':
             return {
                 'Package': 'anna',
                 'Version': '1.58',
                 'Architecture': 'amd64',
                 'Depends': 'libc6-udeb (>= 2.24), libdebconfclient0-udeb, libdebian-installer4-udeb (>= 0.110), cdebconf-udeb'
             }
-        if filename == './tests/data/anna-1.71-defined/anna_1.71_amd64.udeb':
+        if filename == './tests/data/anna-1.71-defined/mydeb.udeb':
             return {
                 'Package': 'anna',
                 'Version': '1.71',
@@ -74,17 +74,27 @@ def get_directory(filename):
     return directory
 
 
-def get_canonicalizer(package):
+def get_canonicalizer(package, deb='udeb', output=None):
     directory = get_directory(package)
-    return C_Canonicalizer(directory, console_logging=False)
+    deb = '{}/mydeb.{}'.format(directory, deb)
+    cgraph = '{}/cgraph.txt'.format(directory)
+    changelog = '{}/changelog'.format(directory)
+    return C_Canonicalizer(
+            deb, cgraph, changelog, console_logging=False, output=output
+    )
 
 
-def get_canonicalizer_with_custom_deps(package, deps, parse=False,
-                                       defined_bit=False):
+def get_canonicalizer_with_custom_deps(package, deps, parse=False, output=None,
+                                       defined_bit=False, deb='udeb'):
     directory = get_directory(package)
+    deb = '{}/mydeb.{}'.format(directory, deb)
+    cgraph = '{}/cgraph.txt'.format(directory)
+    changelog = '{}/changelog'.format(directory)
     custom_deps = get_directory(deps)
-    can = C_Canonicalizer(directory, console_logging=False,
-                          custom_deps=custom_deps, defined_bit=defined_bit)
+    can = C_Canonicalizer(
+            deb, cgraph, changelog, console_logging=False, output=output,
+            custom_deps=custom_deps, defined_bit=defined_bit
+    )
     if parse:
         can.parse_files()
     return can
@@ -172,7 +182,8 @@ def test_gen_can_cgraph_defined(mock_find_product, mock_parse_deb_file):
 def test_save(mock_find_product, mock_parse_deb_file):
     directory = get_directory('anna-1.58')
     filename = directory + '/' + 'can_cgraph.json'
-    can = get_canonicalizer('anna-1.58')
+    output = './tests/data/anna-1.58/can_cgraph.json'
+    can = get_canonicalizer('anna-1.58', output=output)
     can.parse_files()
     can.gen_can_cgraph()
     can.save()
@@ -196,7 +207,10 @@ def test_save(mock_find_product, mock_parse_deb_file):
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
 @patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
 def test_canonicalize(mock_find_product, mock_parse_deb_file):
-    can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json')
+    output = './tests/data/anna-1.58/can_cgraph.json'
+    can = get_canonicalizer_with_custom_deps(
+            'anna-1.58', 'custom_deps.json', output=output
+    )
     can.canonicalize()
     directory = get_directory('anna-1.58')
     filename = directory + '/' + 'can_cgraph.json'
