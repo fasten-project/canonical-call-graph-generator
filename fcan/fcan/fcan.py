@@ -450,8 +450,12 @@ def filter_product(line):
 
 
 def match_products(init_products, test_products):
-    """Match products from one list to products of another list using
-    Levenshtein ratio
+    """Match products from one list to products of another list
+
+    Some times two product names may refer to the same product. For example,
+    libc6-udeb refer to libc6 but without the documentation. In such cases,
+    although that in the dependencies of a package lib6-udeb is declared,
+    dpkg detect libc6.
 
     Args:
         init_products: Usually the dependencies of a Debian package
@@ -461,14 +465,11 @@ def match_products(init_products, test_products):
         A list that contains the match from every product from init_products
         to test_products.
     """
-    products = []
-    for package in init_products:
-        match = (0, '')
-        for tpkg in test_products:
-            lev_ratio = ratio(package, tpkg)
-            match = (lev_ratio, tpkg) if lev_ratio > match[0] else match
-        products.append(match[1])
-    return products
+    remove_udeb = lambda x : x[:-5] if x.endswith('-udeb') else x
+    test_products = list(map(remove_udeb, test_products))
+    # FIXME
+    return [p for p in init_products if p in test_products]
+
 
 
 def find_pkg_of_solib(binary, products):

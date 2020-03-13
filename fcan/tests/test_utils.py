@@ -263,6 +263,6 @@ def test_match_products():
     init = ['libdebconfclient0', 'libdebian-installer4', 'libc6', 'libc6']
     deps = ['libc6-udeb', 'libdebconfclient0-udeb',
             'libdebian-installer4-udeb', 'cdebconf-udeb']
-    res = ['libdebconfclient0-udeb', 'libdebian-installer4-udeb',
-           'libc6-udeb', 'libc6-udeb']
+    res = ['libdebconfclient0', 'libdebian-installer4',
+           'libc6', 'libc6']
     assert match_products(init, deps) == res
