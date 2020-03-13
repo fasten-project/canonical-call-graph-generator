@@ -36,7 +36,6 @@ import argparse
 import time
 import subprocess as sp
 from datetime import datetime
-from Levenshtein import ratio
 
 
 # Special value to give to nodes when the defined bit is off
@@ -499,7 +498,7 @@ class C_Canonicalizer:
         can = C_Canonicalizer('directory')
         can.canonicalize()
     """
-    def __init__(self, directory, forge="debian", source="",
+    def __init__(self, deb, cgraph, changelog, forge="debian", source="",
                  console_logging=True, file_logging=False,
                  logging_level='DEBUG', custom_deps=None,
                  product_regex=None, output=None, analyzer="",
@@ -508,9 +507,9 @@ class C_Canonicalizer:
         """C_Canonicalizer constructor.
 
         Args:
-            directory: A directory that must contains, an .deb
-                or .udeb file, an .txt file with the edge list produced
-                by the analysis.
+            cgraph: Call-Graph filename.
+            deb: deb or udeb filename.
+            changelog: changelog file.
             forge: The forge of the analyzed package.
             console_logging: Enable logs to appear in stdout.
             file_logging: Create a file called debug.log in the 'directory'
@@ -522,7 +521,6 @@ class C_Canonicalizer:
             defined_bit: Input nodes have a bit to declare if a function is
                 defined or not.
         Attributes:
-            directory: directory path with analysis results.
             cgraph: Call-Graph filename.
             deb: deb or udeb filename.
             changelog: changelog file.
@@ -540,17 +538,18 @@ class C_Canonicalizer:
         """
         self._set_logger(console_logging, file_logging, logging_level)
 
-        self.directory = directory
+        self.deb = deb
+        self.cgraph = cgraph
+        self.changelog = changelog
 
-        self.cgraph = find_file(self.directory, '.txt')
-        if self.cgraph is None:
-            raise CanonicalizationError(".txt file not found")
-        self.deb = find_file(self.directory, ('.deb', '.udeb'))
-        if self.deb is None:
-            raise CanonicalizationError(".deb or .udeb file not found")
-        self.changelog = find_file(self.directory, ('changelog'))
-        if self.changelog is None:
-            raise CanonicalizationError("changelog file not found")
+        if not (os.path.exists(self.deb) and os.path.getsize(self.deb) > 0):
+            raise CanonicalizationError("deb file not exist or empty")
+        if not (os.path.exists(self.cgraph) and
+                os.path.getsize(self.cgraph) > 0):
+            raise CanonicalizationError("cgraph file not exist or empty")
+        if not (os.path.exists(self.changelog) and
+                os.path.getsize(self.changelog) > 0):
+            raise CanonicalizationError("changelog file not exist or empty")
 
         self.forge = forge
         self.product = None
@@ -594,7 +593,7 @@ class C_Canonicalizer:
 
         self.output = output
         if self.output is None:
-            self.output = self.directory + '/can_cgraph.json'
+            self.output = 'can_cgraph.json'
 
         self.environment_deps = set()
 
@@ -767,8 +766,9 @@ def main():
     """
     parser = argparse.ArgumentParser(description=(
         'Canonicalize Call Graphs to FASTEN Canonical Call Graphs'))
-    parser.add_argument('directory', help=(
-        'a directory with the Call Graph, and description files'))
+    parser.add_argument('deb', help='deb or udeb file of package')
+    parser.add_argument('cgraph', help='edgelist of call graph in txt file')
+    parser.add_argument('changelog', help='changelog file of package')
     parser.add_argument('-f', '--forge', default='debian', help=(
         'forge of the analyzed project. For example, it could be debian, '
         'or GitHub'))
@@ -800,17 +800,20 @@ def main():
                              )
                        )
     args = parser.parse_args()
-    can = C_Canonicalizer(args.directory,
-                          forge=args.forge,
-                          source=args.source,
-                          console_logging=args.verbose,
-                          file_logging=args.file_logging,
-                          logging_level=args.logging_level,
-                          custom_deps=args.custom_deps,
-                          product_regex=args.regex_product,
-                          analyzer=args.analyzer,
-                          defined_bit=args.defined_bit
-                         )
+    can = C_Canonicalizer(
+            args.deb,
+            args.cgraph,
+            args.changelog,
+            forge=args.forge,
+            source=args.source,
+            console_logging=args.verbose,
+            file_logging=args.file_logging,
+            logging_level=args.logging_level,
+            custom_deps=args.custom_deps,
+            product_regex=args.regex_product,
+            analyzer=args.analyzer,
+            defined_bit=args.defined_bit
+    )
     can.canonicalize()
 
 
