@@ -362,10 +362,11 @@ def convert_debian_time_to_unix(debian_time):
     return str(int(time.mktime(dt_obj.timetuple())))
 
 
-def canonicalize_path(path):
+def canonicalize_path(path, prefix=None):
     """Canonicalize a given path.
 
-    If the path starts with /build/XXX/package-version then remove this prefix.
+    Remove the prefix from the path. Otherwise, if the path starts with
+    /build/XXX/package-version then remove this prefix.
 
     Args:
         path
@@ -379,6 +380,9 @@ def canonicalize_path(path):
     path = os.path.abspath(path)
     # Remove /build prefix
     prefix_regex = re.match(r'(/build/[^/]*/[^/]*-[^/]*/)(.*)', path)
+    if prefix and path.startswith('/'):
+        regex = '({})(.*)'.format(prefix)
+        prefix_regex = re.match(regex, path)
     if prefix_regex:
         path = prefix_regex.groups()[1]
     return path
@@ -690,6 +694,8 @@ class C_Canonicalizer:
                     # Insert to self.nodes only nodes from analyzed product
                     if can_node.startswith('//'):
                         continue
+                    if path.endswith('.cs'):  # Skip cscout files
+                        continue
                     if can_node not in self.nodes:
                         self.nodes[can_node] = {
                                 "id": self.node_id_counter,
@@ -756,6 +762,7 @@ class C_Canonicalizer:
 
     def _parse_node_declaration(self, node):
         _, _, path, _ = self._parse_node_string(node)
+        path = canonicalize_path(path, self.product_regex)
         can_uri = self._get_uri(node)
         return can_uri, path
 
@@ -791,7 +798,7 @@ class C_Canonicalizer:
         scope, is_defined, path, entity = self._parse_node_string(node)
         product = self._find_product(path, entity)
         if scope == 'static':
-            namespace = canonicalize_path(path)
+            namespace = canonicalize_path(path, self.product_regex)
             # TODO Create pct_encode function
             slash = namespace.rfind('/')
             # The main directory of its product
@@ -873,7 +880,8 @@ def main():
     parser.add_argument('-c', '--custom-deps', dest='custom_deps',
                         default=None, help='custom user defined dependencies')
     parser.add_argument('-r', '--regex-product', dest='regex_product',
-                        default=None, help='regex to match product\'s files')
+                        default=None,
+                        help='regex (of prefix) to match product\'s files')
     parser.add_argument('-s', '--source',
                         default='', help='product\'s source')
     parser.add_argument('-o', '--output', dest='output', default=None,
