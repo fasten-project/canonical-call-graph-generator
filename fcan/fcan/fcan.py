@@ -598,7 +598,7 @@ class C_Canonicalizer:
         self.version = None
         self.architecture = None
         self.timestamp = None
-        self.can_graph = []
+        self.can_graph = {'externalCalls': [], 'internalCalls': []}
         self.analyzer = analyzer
         self.defined_bit = defined_bit
         self.node_id_counter = 0
@@ -716,7 +716,9 @@ class C_Canonicalizer:
                     can_edge[0] = self.nodes[can_edge[0]]['id']
                     if can_edge[1] in self.nodes:
                         can_edge[1] = self.nodes[can_edge[1]]['id']
-                    self.can_graph.append(can_edge)
+                        self.can_graph['internalCalls'].append(can_edge)
+                    else:
+                        self.can_graph['externalCalls'].append(can_edge)
 
     def save(self):
         data = {
