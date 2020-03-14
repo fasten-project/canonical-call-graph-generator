@@ -84,10 +84,18 @@ def test_extract_text():
 
 simple_product = {'architectures': "", 'constraints': "[9,)",
                   'forge': "debian", 'product': "debhelper"}
-complex_product = [{'architectures': "amd64", 'constraints': "",
-                    'forge': "debian", 'product': "libdebian-installer4-dev"},
-                   {'architectures': "", 'constraints': "", 'forge': "debian",
-                    'product': "libdebconfclient-dev"}]
+complex_product = {
+        'architectures': "",
+        'constraints': "",
+        'forge': "debian",
+        'product': "libdebconfclient-dev",
+        'alternatives': [{
+            'architectures': "amd64",
+            'constraints': "",
+            'forge': "debian",
+            'product': "libdebian-installer4-dev"
+         }]
+}
 
 
 def test_parse_dependency():

@@ -34,6 +34,7 @@ import json
 import logging
 import argparse
 import time
+import glob
 import subprocess as sp
 from datetime import datetime
 
@@ -106,8 +107,8 @@ def parse_dependency(dep, forge):
         A fasten dependency must contain forge-product, and may contain
         constraints and architectures (if they don't exist, it returns empty
         strings).
-        In case of alternative dependencies it returns a list with the
-        alternatives dependencies.
+        In case of alternative dependencies it includes a field
+        called alternative that has a list of alternative dependencies.
 
     Examples:
         1) input: "debhelper (>= 9)"
@@ -119,17 +120,28 @@ def parse_dependency(dep, forge):
 
         2) input: "libdebian-installer4-dev [amd64] | libdebconfclient-dev"
            return:
-                [{'architectures': 'amd64',
-                  'constraints': '',
-                  'forge': 'debian',
-                  'product': 'libdebian-installer4-dev'},
-                 {'architectures': '',
-                  'constraints': '',
-                  'forge': 'debian',
-                  'product': 'libdebconfclient-dev'}]
+                {'architectures': '',
+                 'constraints': '',
+                 'forge': 'debian',
+                 'product': 'libdebconfclient-dev',
+                 'alternatives': [
+                    {'architectures': 'amd64',
+                     'constraints': '',
+                     'forge': 'debian',
+                     'product': 'libdebian-installer4-dev'
+                    }
+                 ]
+                }
     """
     if '|' in dep:
-        return [parse_dependency(alt, forge) for alt in dep.split('|')]
+        dependencies = [parse_dependency(alt, forge) for alt in dep.split('|')]
+        main_dep = dependencies[0]  # The one if empty as architecture if exist
+        for d in dependencies[1:]:
+            if d['architectures'] == '':
+                main_dep = d
+        dependencies.remove(main_dep)
+        main_dep['alternatives'] = dependencies
+        return main_dep
     dep = dep.strip()
     name = ''
     version = ''
@@ -145,10 +157,9 @@ def get_product_names(dependencies):
     """Get product names from a list with dependencies"""
     names = set()
     for dep in dependencies:
-        if isinstance(dep, dict):
-            names.add(dep['product'])
-        elif isinstance(dep, list):
-            names.update([alt['product'] for alt in dep])
+        names.add(dep['product'])
+        if 'alternatives' in dep:
+            names.update([alt['product'] for alt in dep['alternatives']])
     return names
 
 
@@ -222,7 +233,8 @@ def find_product(path):
     """Find the corresponding product of a file.
 
     Args:
-        The full path of a file.
+        The full path of a file. In case of shared libraries it should be only
+        their name and not their path.
 
     Returns:
         stdout, return status.
@@ -436,6 +448,23 @@ def find_shared_libs(binary):
     return find_shared_libs_util(stdout)
 
 
+def get_product_solib(solib):
+    """Get the product (Debian Package) of a shared library.
+
+    Args:
+        Shared Library
+
+    Returns:
+        Product name
+    """
+    if '/' in solib:
+        solib = solib.split('/')[-1]
+    product_name, status = find_product(solib)
+    if status != 0:
+        return 'UNDEFINED'
+    return product_name
+
+
 def filter_product(line):
     """Helper functions to find which package contains a shared library
     from ldd output line.
@@ -448,7 +477,7 @@ def filter_product(line):
         return stdout
 
 
-def match_products(init_products, test_products):
+def match_products(products, filter_products):
     """Match products from one list to products of another list
 
     Some times two product names may refer to the same product. For example,
@@ -457,18 +486,17 @@ def match_products(init_products, test_products):
     dpkg detect libc6.
 
     Args:
-        init_products: Usually the dependencies of a Debian package
-        test_products: Usually products found using dpkg
+        products: Usually products found using dpkg
+        filter_products: Usually the dependencies of a Debian package
 
     Returns:
         A list that contains the match from every product from init_products
         to test_products.
     """
     remove_udeb = lambda x : x[:-5] if x.endswith('-udeb') else x
-    test_products = list(map(remove_udeb, test_products))
-    # FIXME
-    return [p for p in init_products if p in test_products]
-
+    filter_products = list(map(remove_udeb, filter_products))
+    # FIXME add tests
+    return [p if p in filter_products else 'UNDEFINED' for p in products]
 
 
 def find_pkg_of_solib(binary, products):
@@ -554,7 +582,8 @@ class C_Canonicalizer:
             raise CanonicalizationError("changelog file not exist or empty")
         if not (os.path.exists(binaries) and os.path.isdir(binaries)):
             raise CanonicalizationError("binaries directory not exist")
-        if not os.listdir(binaries):
+        self.binaries = glob.glob(os.path.abspath(binaries + '/*'))
+        if not self.binaries:
             raise CanonicalizationError("binaries directory is empty")
 
         self.forge = forge
@@ -569,6 +598,11 @@ class C_Canonicalizer:
 
         # A cache to minimize the calls of find_product
         self.paths_lookup = {}
+
+        # A dict with all functions of the shared libraries linked to the
+        # binaries, we use this dict to detect the products of undefined
+        # functions
+        self.functions = {}
 
         # Nodes that contain one of those values are skipped from the canonical
         # Call-Graph
@@ -626,6 +660,23 @@ class C_Canonicalizer:
                                for dep in depends]
         self.dependencies.extend(debian_dependencies)
 
+    def detect_functions(self):
+        """Fill self.functions with all the functions detected in the shared
+        libraries linked to self.binaries
+        """
+        solibs = set()
+        for b in self.binaries:
+            solibs.update(find_shared_libs(b))
+        solibs = list(solibs)
+        products = [get_product_solib(l) for l in solibs]
+        deps = get_product_names(self.dependencies)
+        products = match_products(products, deps)
+        for solib, product in zip(reversed(solibs), reversed(products)):
+            stdout, _ = run_command(['objdump', '-T', solib])
+            for line in stdout:
+                if 'DF .text' in line or 'iD  .text' in line:
+                    self.functions[line.split()[-1]] = product
+
     def gen_can_cgraph(self):
         """Generate canonical Call-Graph."""
         with open(self.cgraph, 'r') as fdr:
@@ -664,6 +715,7 @@ class C_Canonicalizer:
 
     def canonicalize(self):
         self.parse_files()
+        self.detect_functions()
         self.gen_can_cgraph()
         self.save()
 
