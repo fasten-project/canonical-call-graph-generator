@@ -714,16 +714,17 @@ class C_Canonicalizer:
 
     def save(self):
         data = {
-            'product': self.product,
-            'source': self.source,
-            'version': self.version,
-            'architecture': self.architecture,
             'forge': self.forge,
+            'product': self.product,
+            'version': self.version,
+            'source': self.source,
+            'architecture': self.architecture,
+            'generator': self.analyzer,
             'timestamp': self.timestamp,
             'depset': self.dependencies,
-            'environment_depset': self._get_environment_dependenies(),
+            #  'environment_depset': self._get_environment_dependenies(),
             'graph': self.can_graph,
-            'analyzer': self.analyzer
+            'cha': self.nodes
         }
         with open(self.output, 'w') as fdr:
             json.dump(data, fdr)
