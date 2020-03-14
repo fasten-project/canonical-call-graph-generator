@@ -562,6 +562,8 @@ class C_Canonicalizer:
             timestamp: seconds form epoch.
             dependencies: Product's dependencies (dict or list).
             can_graph: Canonicalized Call-Graph.
+            node_id_counter: A counter to set node ids
+            nodes: Nodes of analyzed product
             environment_deps: Dependencies that are not declared in deb.
         Raise:
             CanonicalizationError: if .txt or .deb files not found.
@@ -595,9 +597,8 @@ class C_Canonicalizer:
         self.can_graph = []
         self.analyzer = analyzer
         self.defined_bit = defined_bit
-
-        # A cache to minimize the calls of find_product
-        self.paths_lookup = {}
+        self.node_id_counter = 0
+        self.nodes = {}
 
         # A dict with all functions of the shared libraries linked to the
         # binaries, we use this dict to detect the products of undefined
@@ -685,7 +686,18 @@ class C_Canonicalizer:
             elements = csv.reader(fdr, delimiter=' ')
             for el in elements:
                 if len(el) == 1:
-                    self._parse_node_declaration(el)
+                    can_node, path = self._parse_node_declaration(el[0])
+                    # Insert to self.nodes only nodes from analyzed product
+                    if can_node.startswith('//'):
+                        continue
+                    if can_node not in self.nodes:
+                        self.nodes[can_node] = {
+                                "id": self.node_id_counter,
+                                "files": [path]
+                        }
+                        self.node_id_counter += 1
+                    else:
+                        self.nodes[can_node]['files'].append(path)
                 else:
                     can_edge = self._parse_edge(el)
                     # If the product of the first node is not the analyzed or
@@ -695,6 +707,9 @@ class C_Canonicalizer:
                         (any(r in can_edge[0] for r in self.rules) or
                          any(r in can_edge[1] for r in self.rules))):
                         continue
+                    can_edge[0] = self.nodes[can_edge[0]]['id']
+                    if can_edge[1] in self.nodes:
+                        can_edge[1] = self.nodes[can_edge[1]]['id']
                     self.can_graph.append(can_edge)
 
     def save(self):
@@ -739,13 +754,14 @@ class C_Canonicalizer:
             self.logger.addHandler(file_h)
 
     def _parse_node_declaration(self, node):
-        pass
-
+        _, _, path, _ = self._parse_node_string(node)
+        can_uri = self._get_uri(node)
+        return can_uri, path
 
     def _parse_edge(self, edge):
         node1 = self._get_uri(edge[0])
         node2 = self._get_uri(edge[1])
-        return (node1, node2)
+        return [node1, node2]
 
     def _get_uri(self, node):
         product, namespace, function = self._parse_node(node)
@@ -761,18 +777,18 @@ class C_Canonicalizer:
             forge_product_version += '//' + product
         return '{}/{}/{}'.format(forge_product_version, namespace, function)
 
-    def _parse_node(self, node):
+    def _parse_node_string(self, node):
         is_defined = True
         if self.defined_bit:
             scope, is_defined, path, entity = node.split(':')
             is_defined = False if is_defined == '0' else True
         else:
             scope, path, entity = node.split(':')
-        if is_defined:
-            print(path)
-            product = self._find_product(path)
-        else:
-            product = UNDEFINED_PRODUCT
+        return scope, is_defined, path, entity
+
+    def _parse_node(self, node):
+        scope, is_defined, path, entity = self._parse_node_string(node)
+        product = self._find_product(path, entity)
         if scope == 'static':
             namespace = canonicalize_path(path)
             # TODO Create pct_encode function
@@ -789,27 +805,28 @@ class C_Canonicalizer:
             function = entity + '()'
         return product, namespace, function
 
-    def _find_product(self, path):
-        if path not in self.paths_lookup:
-            stdout, status = find_product(path)
-            self.paths_lookup[path] = (stdout, status)
-        else:
-            stdout, status = self.paths_lookup[path]
-        if status == 0:
-            return stdout.decode(encoding='utf-8').split(':')[0]
+    def _find_product(self, path, function):
+        # Check if functions is in the functions found in shared libraries
+        if function in self.functions:
+            return self.functions[function]
+        # TODO else check for path in product and if it is ok add cache
+        # Check if it is a product from custom deps based on the path
+        if self.custom_deps is not None:
+            product = check_custom_deps(path, self.custom_deps)
+            if product is not None:
+                return product
+        # Check if the callable belongs to the analyzed product
         if re.match(r'' + self.product_regex, path):
             self.logger.debug("product match: %s", path)
             return self.product
         if path.startswith('./'):
             return self.product
-        if self.custom_deps is not None:
-            product = check_custom_deps(path, self.custom_deps)
-            if product is not None:
-                return product
         if not path.startswith('/'):
             return self.product
-        self.logger.debug("NULL match: %s", path)
-        return "NULL"
+        self.logger.debug(
+                "UNDEFINED match: path %s, function %s", path, function
+        )
+        return UNDEFINED_PRODUCT
 
     def _get_environment_dependenies(self):
         """Add products that dpkg detected but we don't have them as deps.
