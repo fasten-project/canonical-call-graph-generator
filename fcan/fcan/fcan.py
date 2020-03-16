@@ -761,13 +761,28 @@ class C_Canonicalizer:
             solibs.update(find_shared_libs(b))
         solibs = list(solibs)
         products = [get_product_solib(l) for l in solibs]
-        deps = get_product_names(self.dependencies)
-        products = match_products(products, deps)
         for solib, product in zip(reversed(solibs), reversed(products)):
             stdout, _ = run_command(['objdump', '-T', solib])
+            resolved_product = self.dependencies_lookup.get(
+                    product, UNDEFINED_PRODUCT
+            )
+            if product not in self.dependencies_lookup:
+                resolved_product = UNDEFINED_PRODUCT
+                self.logger.warning(
+                        "Warning: %s not found in dependencies", product
+                )
+            else:
+                resolved_product = self.dependencies_lookup[product]
             for line in stdout:
                 if 'DF .text' in line or 'iD  .text' in line:
-                    self.functions[line.split()[-1]] = product
+                    name = line.split()[-1]
+                    if (name in self.functions and
+                            resolved_product != self.functions[name]):
+                        self.logger.warning(
+                            "Warning: %s (%s) already found in %s",
+                            name, resolved_product, self.functions[name]
+                        )
+                    self.functions[name] = resolved_product
 
     def gen_can_cgraph(self):
         """Generate canonical Call-Graph."""
