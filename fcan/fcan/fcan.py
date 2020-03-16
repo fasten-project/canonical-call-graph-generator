@@ -36,11 +36,19 @@ import argparse
 import time
 import glob
 import subprocess as sp
+import pkg_resources
 from datetime import datetime
 
 
 # Special value to give to nodes when the defined bit is off
 UNDEFINED_PRODUCT = 'UNDEFINED'
+# https://www.debian.org/doc/debian-policy/ch-relationships.html
+BINARY_DEPENDENCIES = [
+    'Depends', 'Recommends', 'Suggests', 'Enhances', 'Pre-Depends'
+]
+BUILD_DEPENDENCIES = [
+    'Built-Using', 'Build-Depends', 'Build-Depends-Indep', 'Build-Depends-Arch'
+]
 
 
 class CanonicalizationError(Exception):
@@ -94,13 +102,19 @@ def extract_text(inp, sep=('(', ')')):
     return '', inp
 
 
-def parse_dependency(dep, forge):
+def parse_dependency(dep, forge, dep_type, virtuals={}, strip_udeb=False):
     """Parse a dependency and return a dictionary in the FASTEN format.
 
     Args:
         dep: A string that contains a dependency. It may include alternatives
         dependencies (|), specific versions (inside parentheses), and specific
         architectures (inside brackets).
+        forge: debian, or github, etc.
+        dep_type: The dependency type.
+        virtuals: Map of virtual packages to the packages they produced them.
+            This is needed for Debian packages, to check if a dependency is
+            virtual.
+        strip_udeb: Boolean
 
     Returns:
         A dict mappings values to the corresponding fields.
@@ -113,32 +127,44 @@ def parse_dependency(dep, forge):
     Examples:
         1) input: "debhelper (>= 9)"
            return:
-                {'architectures': '',
-                 'constraints': '[9,)',
+                {
+                 'product': 'debhelper',
                  'forge': 'debian',
-                 'product': 'debhelper'}
+                 'architectures': '',
+                 'constraints': '[9,)',
+                 'dependency_type': 'Depends',
+                 'is_virtual': False,
+                 'alternatives': []
+                }
 
         2) input: "libdebian-installer4-dev [amd64] | libdebconfclient-dev"
            return:
-                {'architectures': '',
-                 'constraints': '',
-                 'forge': 'debian',
+                {
                  'product': 'libdebconfclient-dev',
+                 'forge': 'debian',
+                 'architectures': '',
+                 'constraints': '',
+                 'dependency_type': 'Depends',
+                 'is_virtual': False,
                  'alternatives': [
-                    {'architectures': 'amd64',
-                     'constraints': '',
-                     'forge': 'debian',
+                    {
                      'product': 'libdebian-installer4-dev'
+                     'forge': 'debian',
+                     'architectures': 'amd64',
+                     'constraints': '',
+                     'dependency_type': 'Depends',
+                     'is_virtual': False,
+                     'alternatives': []
                     }
                  ]
                 }
     """
     if '|' in dep:
-        dependencies = [parse_dependency(alt, forge) for alt in dep.split('|')]
-        main_dep = dependencies[0]  # The one if empty as architecture if exist
-        for d in dependencies[1:]:
-            if d['architectures'] == '':
-                main_dep = d
+        dependencies = [
+            parse_dependency(alt, forge, dep_type, virtuals, strip_udeb)
+            for alt in dep.split('|')
+        ]
+        main_dep = dependencies[0]
         dependencies.remove(main_dep)
         main_dep['alternatives'] = dependencies
         return main_dep
@@ -149,8 +175,11 @@ def parse_dependency(dep, forge):
     version, dep = extract_text(dep)
     arch, dep = extract_text(dep, ('[', ']'))
     name = dep.strip()
-    return {'forge': forge, 'product': name,
-            'constraints': use_mvn_spec(version), 'architectures': arch}
+    name = name[:-5] if name.endswith('-udeb') else name
+    virtual = True if dep in virtuals else False
+    return {'product': name, 'forge': forge, 'architectures': arch,
+            'constraints': use_mvn_spec(version), 'dependency_type': dep_type,
+            'is_virtual': virtual, 'alternatives': []}
 
 
 def get_product_names(dependencies):
@@ -320,6 +349,32 @@ def parse_changelog(filename, version):
                         check_line = True
 
 
+def parse_dsc_file(filename):
+    """Parse a .dsc file.
+
+    Args:
+        filename: filename of changelog
+
+    Returns:
+        dict with the following keys:
+
+    """
+    res = {}
+    with open(filename, 'r') as f:
+        lines = f.readlines()
+        lines = [l.strip() for l in lines]
+        for line in lines:
+            if line.startswith('Built-Using'):
+                res['Built-Using'] = line[line.find(':')+1:].strip()
+            elif line.startswith('Build-Depends'):
+                res['Build-Depends'] = line[line.find(':')+1:].strip()
+            elif line.startswith('Build-Depends-Indep'):
+                res['Build-Depends-Indep'] = line[line.find(':')+1:].strip()
+            elif line.startswith('Build-Depends-Arch'):
+                res['Build-Depends-Arch'] = line[line.find(':')+1:].strip()
+    return res
+
+
 def parse_deb_file(filename):
     """Parse a .deb or .udeb file using dpkg -I
 
@@ -346,6 +401,14 @@ def parse_deb_file(filename):
             res['Architecture'] = line[line.find(':')+1:].strip()
         elif line.startswith('Depends:'):
             res['Depends'] = line[line.find(':')+1:].strip()
+        elif line.startswith('Suggests:'):
+            res['Suggests'] = line[line.find(':')+1:].strip()
+        elif line.startswith('Recommends:'):
+            res['Recommends'] = line[line.find(':')+1:].strip()
+        elif line.startswith('Enhances:'):
+            res['Enhances'] = line[line.find(':')+1:].strip()
+        elif line.startswith('Pre-Depends:'):
+            res['Pre-Depends'] = line[line.find(':')+1:].strip()
     return res
 
 
@@ -534,7 +597,7 @@ class C_Canonicalizer:
                  source="", console_logging=True, file_logging=False,
                  logging_level='DEBUG', custom_deps=None,
                  product_regex=None, output=None, analyzer="",
-                 defined_bit=False
+                 defined_bit=False, virtuals={}
                 ):
         """C_Canonicalizer constructor.
 
@@ -554,6 +617,8 @@ class C_Canonicalizer:
             analyzer: Analyzer used to generate the call graphs.
             defined_bit: Input nodes have a bit to declare if a function is
                 defined or not.
+            virtuals: Map from virtual packages to list of packages that
+                implements them.
         Attributes:
             cgraph: Call-Graph filename.
             deb: deb or udeb filename.
@@ -566,13 +631,18 @@ class C_Canonicalizer:
             version: Product's version (string).
             version: Product's architecture.
             timestamp: seconds form epoch.
-            dependencies: Product's dependencies (dict or list).
+            dependencies: Product's dependencies.
+            build_dependencies: Product's build dependencies.
+            dependencies_lookup: A map from host packages to dependencies.
             can_graph: Canonicalized Call-Graph.
             node_id_counter: A counter to set node ids
             nodes: Nodes of analyzed product
             environment_deps: Dependencies that are not declared in deb.
+            virtuals: Map from virtual packages to list of packages that
+                implements them.
         Raise:
-            CanonicalizationError: if .txt or .deb files not found.
+            CanonicalizationError: if any of the input files does not exist or
+                is empty
         """
         self._set_logger(console_logging, file_logging, logging_level)
 
@@ -580,6 +650,7 @@ class C_Canonicalizer:
         self.dsc = dsc
         self.cgraph = cgraph
         self.changelog = changelog
+        self.virtuals = virtuals
 
         if not (os.path.exists(self.deb) and os.path.getsize(self.deb) > 0):
             raise CanonicalizationError("deb file not exist or empty")
@@ -622,6 +693,7 @@ class C_Canonicalizer:
         self.rules = ['NULL']
 
         self.dependencies = []
+        self.build_dependencies = []
         # dict of dicts
         self.custom_deps = None
         if custom_deps is not None:
@@ -633,7 +705,10 @@ class C_Canonicalizer:
                         "forge": value['forge'],
                         "product": key,
                         "constraints": use_mvn_spec(value['constraints']),
-                        "architecture": value['architecture']
+                        "architecture": value['architecture'],
+                        "dependency_type": "custom",
+                        "is_virtual": False,
+                        "alternatives": {}
                     })
                 else:
                     self.rules.append(key)
@@ -656,6 +731,8 @@ class C_Canonicalizer:
         self.product = dpkg['Package']
         self.version = dpkg['Version']
         self.architecture = dpkg['Architecture']
+        # dsc file
+        dsc = parse_dsc_file(self.dsc)
         # changelog
         debian_time = parse_changelog(self.changelog, self.version)
         if debian_time:
@@ -663,15 +740,16 @@ class C_Canonicalizer:
         else:
             self.timestamp = -1
         # Dependencies
-        try:
-            depends = set(safe_split(dpkg['Depends']))
-        except KeyError:
-            depends = []
-            self.logger.warning("Warning: %s has no Depends", self.deb)
-        # Set forge as debian because they declared as Debian packages
-        debian_dependencies = [parse_dependency(dep, 'debian')
-                               for dep in depends]
-        self.dependencies.extend(debian_dependencies)
+        for dep_type in BINARY_DEPENDENCIES:
+            if dep_type in dpkg:
+                self._parse_dependencies(dpkg[dep_type], dep_type)
+            else:
+                self.logger.warning("Warning: %s has no %s", self.deb, dep_type)
+        for dep_type in BUILD_DEPENDENCIES:
+            if dep_type in dsc:
+                self._parse_dependencies(dsc[dep_type], dep_type, True)
+            else:
+                self.logger.warning("Warning: %s has no %s", self.dsc, dep_type)
 
     def detect_functions(self):
         """Fill self.functions with all the functions detected in the shared
@@ -738,6 +816,7 @@ class C_Canonicalizer:
             'generator': self.analyzer,
             'timestamp': self.timestamp,
             'depset': self.dependencies,
+            'build_depset': self.build_dependencies,
             #  'environment_depset': self._get_environment_dependenies(),
             'graph': self.can_graph,
             'cha': self.nodes
@@ -769,6 +848,32 @@ class C_Canonicalizer:
             file_h.setLevel(logging_level)
             file_h.setFormatter(formatter)
             self.logger.addHandler(file_h)
+
+    def _parse_dependencies(self, string, dep_type, is_build_dep=False):
+        """This method parses a string that contain dependencies and append
+        them to either self.dependencies or self.build_dependencies.
+        It also updates self.dependencies_lookup.
+
+        If the is_build_dep flag is true then it appends the parsed
+        dependencies to self.build_dependencies, otherwise to self.dependencies.
+
+        * For regular dependencies adds `product: product` into
+        dependencies_lookup.
+        * For alternatives adds `alt_product: original_product` into
+        dependencies_lookup, where original_product is the alternative with
+        higher priority.
+        * For virtual packages finds all products that provide the virtual
+        package and adds product: `virtual_product`. If the virtual package is
+        in alternatives then add the original product instead of virtual_product
+        """
+        deps = set(safe_split(string))
+        # Set forge as debian because they declared as Debian packages
+        deps = [parse_dependency(dep, 'debian', dep_type, self.virtuals, True)
+                for dep in deps]
+        if is_build_dep:
+            self.build_dependencies.extend(deps)
+        else:
+            self.dependencies.extend(deps)
 
     def _parse_node_declaration(self, node):
         _, _, path, _ = self._parse_node_string(node)
@@ -905,6 +1010,9 @@ def main():
                         help='file to save the canonicalized call graph')
     parser.add_argument('-a', '--analyzer', default='',
                         help='Analyzer used to generate the call graphs')
+    parser.add_argument('-R', '--release', choices=['buster', 'bullseye'],
+                        help=('Debian Release. This option is used to get '
+                              'the virtual packages of a release'))
     parser.add_argument('-d', '--defined-bit', dest='defined_bit',
                         action='store_true',
                         help=('Check for bit that declares if a function is '
@@ -914,6 +1022,14 @@ def main():
                              )
                        )
     args = parser.parse_args()
+    virtuals = {}
+    if args.release:
+        release = pkg_resources.resource_filename(
+            __name__, 'data/virtual/{}.json'.format(args.release)
+            )
+        with open(release, 'r') as f:
+            virtuals = json.load(f)
+
     can = C_Canonicalizer(
             args.deb,
             args.dsc,
@@ -928,7 +1044,8 @@ def main():
             custom_deps=args.custom_deps,
             product_regex=args.regex_product,
             analyzer=args.analyzer,
-            defined_bit=args.defined_bit
+            defined_bit=args.defined_bit,
+            virtuals=virtuals
     )
     can.canonicalize()
 
