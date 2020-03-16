@@ -609,6 +609,9 @@ class C_Canonicalizer:
         # functions
         self.functions = {}
 
+        # A cache to minimize the calls of find_product
+        self.paths_lookup = {}
+
         # Nodes that contain one of those values are skipped from the canonical
         # Call-Graph
         self.rules = ['NULL']
@@ -819,7 +822,13 @@ class C_Canonicalizer:
         # Check if functions is in the functions found in shared libraries
         if function in self.functions:
             return self.functions[function]
-        # TODO else check for path in product and if it is ok add cache
+        if path not in self.paths_lookup:
+            stdout, status = find_product(path)
+            self.paths_lookup[path] = (stdout, status)
+        else:
+            stdout, status = self.paths_lookup[path]
+        if status == 0:
+            return stdout
         # Check if it is a product from custom deps based on the path
         if self.custom_deps is not None:
             product = check_custom_deps(path, self.custom_deps)
