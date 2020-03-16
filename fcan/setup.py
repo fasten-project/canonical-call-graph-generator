@@ -65,7 +65,9 @@ setup(
     python_requires='>=3.4, <4',
     setup_requires=['pytest-runner'],
     tests_require=['pytest', 'mock'],
-    packages=find_packages(),
+    packages=['fcan'],
+    packages_dir={'fcan': 'fcan'},
+    package_data={'fcan': ['data/virtual/*.json']},
     entry_points={
         'console_scripts': [
             'fcan=fcan.fcan:main',
