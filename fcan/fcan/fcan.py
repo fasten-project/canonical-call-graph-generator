@@ -530,7 +530,7 @@ class C_Canonicalizer:
         can = C_Canonicalizer('file.deb', 'cgraph.txt', 'changelog')
         can.canonicalize()
     """
-    def __init__(self, deb, cgraph, changelog, binaries, forge="debian",
+    def __init__(self, deb, dsc, cgraph, changelog, binaries, forge="debian",
                  source="", console_logging=True, file_logging=False,
                  logging_level='DEBUG', custom_deps=None,
                  product_regex=None, output=None, analyzer="",
@@ -540,9 +540,10 @@ class C_Canonicalizer:
 
         Args:
             deb: deb or udeb filename.
+            dsc: dsc filename.
             cgraph: Call-Graph filename.
             changelog: changelog file.
-            changelog: directory that contains analyzed binaries.
+            binaries: directory that contains analyzed binaries.
             forge: The forge of the analyzed package.
             console_logging: Enable logs to appear in stdout.
             file_logging: Create a file called debug.log in the 'directory'
@@ -556,6 +557,7 @@ class C_Canonicalizer:
         Attributes:
             cgraph: Call-Graph filename.
             deb: deb or udeb filename.
+            dsc: dsc filename.
             changelog: changelog file.
             binaries: list with analyzed binaries.
             forge: Product's forge.
@@ -575,11 +577,14 @@ class C_Canonicalizer:
         self._set_logger(console_logging, file_logging, logging_level)
 
         self.deb = deb
+        self.dsc = dsc
         self.cgraph = cgraph
         self.changelog = changelog
 
         if not (os.path.exists(self.deb) and os.path.getsize(self.deb) > 0):
             raise CanonicalizationError("deb file not exist or empty")
+        if not (os.path.exists(self.dsc) and os.path.getsize(self.dsc) > 0):
+            raise CanonicalizationError("dsc file not exist or empty")
         if not (os.path.exists(self.cgraph) and
                 os.path.getsize(self.cgraph) > 0):
             raise CanonicalizationError("cgraph file not exist or empty")
@@ -872,6 +877,7 @@ def main():
     parser = argparse.ArgumentParser(description=(
         'Canonicalize Call Graphs to FASTEN Canonical Call Graphs'))
     parser.add_argument('deb', help='deb or udeb file of package')
+    parser.add_argument('dsc', help='dsc file of package')
     parser.add_argument('cgraph', help='edgelist of call graph in txt file')
     parser.add_argument('changelog', help='changelog file of package')
     parser.add_argument('binaries',
@@ -910,6 +916,7 @@ def main():
     args = parser.parse_args()
     can = C_Canonicalizer(
             args.deb,
+            args.dsc,
             args.cgraph,
             args.changelog,
             args.binaries,
