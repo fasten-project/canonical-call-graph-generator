@@ -694,6 +694,7 @@ class C_Canonicalizer:
 
         self.dependencies = []
         self.build_dependencies = []
+        self.dependencies_lookup = {}
         # dict of dicts
         self.custom_deps = None
         if custom_deps is not None:
@@ -874,6 +875,27 @@ class C_Canonicalizer:
             self.build_dependencies.extend(deps)
         else:
             self.dependencies.extend(deps)
+        # Update self.dependencies_lookup
+        for dep in deps:
+            self.dependencies_lookup[dep['product']] = dep['product']
+            for alt in dep['alternatives']:
+                self.dependencies_lookup[alt['product']] = dep['product']
+                self._add_virtuals(alt, dep['product'])
+            self._add_virtuals(dep, dep['product'])
+
+    def _add_virtuals(self, dep, base_product):
+        """Check if a product is virtual and if it add the products that
+        provide it to self.dependencies_lookup.
+        """
+        if dep['is_virtual']:
+            if dep['product'] in self.virtuals:
+                for p in self.virtuals[dep['product']]:
+                    self.dependencies_lookup[p] = base_product
+            else:
+                self.logger.warning("Warning: %s not in self.virtuals",
+                        dep['product']
+                )
+
 
     def _parse_node_declaration(self, node):
         _, _, path, _ = self._parse_node_string(node)
