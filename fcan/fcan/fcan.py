@@ -810,7 +810,6 @@ class C_Canonicalizer:
                     can_edge = self._parse_edge(el)
                     # If the product of the first node is not the analyzed or
                     # if the product of either nodes is in rules skip that edge
-                    # FIXME the startswith test must be done outside
                     if (can_edge[0].startswith('//') or
                         (any(r in can_edge[0] for r in self.rules) or
                          any(r in can_edge[1] for r in self.rules))):
@@ -899,7 +898,7 @@ class C_Canonicalizer:
             self._add_virtuals(dep, dep['product'])
 
     def _add_virtuals(self, dep, base_product):
-        """Check if a product is virtual and if it add the products that
+        """Check if a product is virtual, and if it is add the products that
         provide it to self.dependencies_lookup.
         """
         if dep['is_virtual']:
@@ -925,10 +924,15 @@ class C_Canonicalizer:
 
     def _get_uri(self, node):
         product, namespace, function = self._parse_node(node)
-        if (product not in get_product_names(self.dependencies) and
-                product not in self.rules and product != UNDEFINED_PRODUCT):
-            if product != self.product:
-                self.environment_deps.add(product)
+        if (product not in self.dependencies_lookup and
+                product not in self.rules and
+                product != self.product and
+                product not in self.environment_deps and
+                product != UNDEFINED_PRODUCT):
+            self.logger.warning(
+                "Warning: %s not found in dependencies", product
+            )
+            self.environment_deps.add(product)
         return self._uri_generator(product, namespace, function)
 
     def _uri_generator(self, product, namespace, function):
@@ -966,31 +970,33 @@ class C_Canonicalizer:
         return product, namespace, function
 
     def _find_product(self, path, function):
-        # Check if functions is in the functions found in shared libraries
+        # Check if function is in the functions found in shared libraries
         if function in self.functions:
             return self.functions[function]
+        # Check if path is in paths_lookup
+        if path in self.paths_lookup:
+            stdout, status = self.paths_lookup[path]
+            if status == 0:
+                return stdout
+        # Check if the callable belongs to the analyzed product
+        if re.match(r'' + self.product_regex, path):
+            self.logger.debug("product match: %s", path)
+            return self.product
+        # Detect product by examining the path
         if path not in self.paths_lookup:
             stdout, status = find_product(path)
             self.paths_lookup[path] = (stdout, status)
-        else:
-            stdout, status = self.paths_lookup[path]
-        if status == 0:
-            return stdout
+            if status == 0:
+                return stdout
         # Check if it is a product from custom deps based on the path
         if self.custom_deps is not None:
             product = check_custom_deps(path, self.custom_deps)
             if product is not None:
                 return product
-        # Check if the callable belongs to the analyzed product
-        if re.match(r'' + self.product_regex, path):
-            self.logger.debug("product match: %s", path)
-            return self.product
-        if path.startswith('./'):
-            return self.product
         if not path.startswith('/'):
             return self.product
-        self.logger.debug(
-                "UNDEFINED match: path %s, function %s", path, function
+        self.logger.warning(
+                "Warning: UNDEFINED match: path %s, function %s", path, function
         )
         return UNDEFINED_PRODUCT
 
