@@ -174,6 +174,7 @@ def parse_dependency(dep, forge, dep_type, virtuals={}, strip_udeb=False):
     arch = ''
     version, dep = extract_text(dep)
     arch, dep = extract_text(dep, ('[', ']'))
+    _, dep = extract_text(dep, ('<', '>'))
     name = dep.strip()
     name = name[:-5] if name.endswith('-udeb') else name
     virtual = True if dep in virtuals else False
