@@ -597,7 +597,7 @@ class C_Canonicalizer:
                  source="", console_logging=True, file_logging=False,
                  logging_level='DEBUG', custom_deps=None,
                  product_regex=None, output=None, analyzer="",
-                 defined_bit=False, virtuals={}
+                 defined_bit=False, virtuals={}, release=""
                 ):
         """C_Canonicalizer constructor.
 
@@ -619,6 +619,7 @@ class C_Canonicalizer:
                 defined or not.
             virtuals: Map from virtual packages to list of packages that
                 implements them.
+            release: Debian Release
         Attributes:
             cgraph: Call-Graph filename.
             deb: deb or udeb filename.
@@ -626,6 +627,7 @@ class C_Canonicalizer:
             changelog: changelog file.
             binaries: list with analyzed binaries.
             forge: Product's forge.
+            release: Debian Release
             product: Product's name.
             source: Source's name.
             version: Product's version (string).
@@ -651,6 +653,7 @@ class C_Canonicalizer:
         self.cgraph = cgraph
         self.changelog = changelog
         self.virtuals = virtuals
+        self.release = release
 
         if not (os.path.exists(self.deb) and os.path.getsize(self.deb) > 0):
             raise CanonicalizationError("deb file not exist or empty")
@@ -824,6 +827,7 @@ class C_Canonicalizer:
     def save(self):
         data = {
             'forge': self.forge,
+            'release': self.release,
             'product': self.product,
             'version': self.version,
             'source': self.source,
@@ -832,7 +836,7 @@ class C_Canonicalizer:
             'timestamp': self.timestamp,
             'depset': self.dependencies,
             'build_depset': self.build_dependencies,
-            #  'environment_depset': self._get_environment_dependenies(),
+            'undeclared_depset': self._get_environment_dependenies(),
             'graph': self.can_graph,
             'cha': self.nodes
         }
@@ -1005,7 +1009,7 @@ class C_Canonicalizer:
 
         Orphan dependencies are probably Essential packages. You can find more
         about essential packages here:
-            https://www.debian.org/doc/debian-policy/ch-binary.html#essential-packages
+        https://www.debian.org/doc/debian-policy/ch-binary.html#essential-packages
         """
         depset = []
         for orph in self.environment_deps:
@@ -1013,7 +1017,11 @@ class C_Canonicalizer:
                 'forge': 'debian',
                 'product': orph,
                 'architectures': '',
-                'constraints': ''})
+                'constraints': '',
+                'dependency_type': '',
+                'is_virtual': False,
+                'alternatives': []
+            })
         return depset
 
 
@@ -1072,6 +1080,9 @@ def main():
             )
         with open(release, 'r') as f:
             virtuals = json.load(f)
+        release = args.release
+    else:
+        release = ''
 
     can = C_Canonicalizer(
             args.deb,
@@ -1088,7 +1099,8 @@ def main():
             product_regex=args.regex_product,
             analyzer=args.analyzer,
             defined_bit=args.defined_bit,
-            virtuals=virtuals
+            virtuals=virtuals,
+            release=release
     )
     can.canonicalize()
 
