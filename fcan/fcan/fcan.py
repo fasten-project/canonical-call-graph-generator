@@ -644,7 +644,8 @@ class C_Canonicalizer:
                 if product == self.product:
                     resolved_product = self.product
                 else:
-                    resolved_product = UNDEFINED_PRODUCT
+                    resolved_product = product
+                    self.environment_deps.add(product)
                     self.logger.warning(
                             "Warning: %s not found in dependencies", product
                     )
