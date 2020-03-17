@@ -24,11 +24,10 @@
 import os
 from mock import patch
 from mock import Mock
-from fcan.fcan import safe_split, extract_text, parse_dependency, find_nth,\
-        get_product_names, find_file, find_files, check_custom_deps,\
-        use_mvn_spec, parse_changelog, convert_debian_time_to_unix,\
-        canonicalize_path, run_command, find_undefined_functions_util,\
-        find_shared_libs_util, filter_product, match_products
+from fcan.fcan import safe_split, extract_text, parse_dependency,\
+        check_custom_deps, use_mvn_spec, parse_changelog,\
+        convert_debian_time_to_unix, canonicalize_path, run_command,\
+        find_shared_libs_util
 
 
 def get_directory(filename):
@@ -105,51 +104,6 @@ def test_parse_dependency():
         "debian") == complex_product
 
 
-def test_get_product_names():
-    assert get_product_names([simple_product]) == set(['debhelper'])
-    assert get_product_names([complex_product]) == \
-        set(['libdebian-installer4-dev', 'libdebconfclient-dev'])
-    assert get_product_names([simple_product, complex_product]) == \
-        set(['debhelper', 'libdebian-installer4-dev', 'libdebconfclient-dev'])
-
-
-def test_find_nth():
-    assert find_nth('foo foo bar foo', 'foo', 1) == 0,\
-        "Should return 0"
-    assert find_nth('foo foo bar foo', 'foo', 2) == 4,\
-        "Should return 4"
-    assert find_nth('foo foo bar foo', 'foo', 3) == 12,\
-        "Should return 12"
-    assert find_nth('foo foo bar foo', 'foo', 4) == -1,\
-        "Should return -1"
-    assert find_nth('foo foo bar foo', 'bar', 1) == 8,\
-        "Should return 8"
-    assert find_nth('foo foo bar foo', 'bar', 2) == -1,\
-        "Should return -1"
-    assert find_nth('foo foo bar foo', 'bur', 2) == -1,\
-        "Should return -1"
-
-
-def test_find_file():
-    dirs_path = '{}/{}/{}/'.format(os.path.curdir, 'tests', 'data')
-    assert find_file(dirs_path + 'package1', ('.txt')) is None,\
-        "Should return -1"
-    res1 = find_file(dirs_path + 'package2', ('.txt')).endswith('.txt')
-    res2 = find_file(dirs_path + 'package2', ('.dsc')).endswith('.dsc')
-    assert res1 is True, "Should be True"
-    assert res2 is True, "Should be True"
-
-
-def test_find_files():
-    dirs_path = '{}/{}/{}/'.format(os.path.curdir, 'tests', 'data')
-    assert len(find_files(dirs_path + 'package1', ('.deb', '.udeb'))) == 0,\
-        "Should return an empty list"
-    assert len(find_files(dirs_path + 'package2', ('.deb', '.udeb'))) == 1,\
-        "Should return a list with one file"
-    assert len(find_files(dirs_path + 'package3', ('.deb', '.udeb'))) == 3,\
-        "Should return a list with 3 files"
-
-
 def test_check_custom_deps():
     custom_deps = {
                 "my_dep": {
@@ -222,32 +176,6 @@ def test_run_command():
     assert run_command(['echo111', 'hello'])[1] == -1
 
 
-def test_find_undefined_functions_util():
-    with open('tests/data/cmds/objdumpout1', 'r') as f:
-        stdout = f.readlines()
-    res = ['getenv', '__snprintf_chk', 'free', '__errno_location', 'unlink',
-           '_ITM_deregisterTMCloneTable', 'di_log',
-           'di_system_packages_parser_info',
-           'di_system_packages_status_parser_info', 'qsort',
-           'di_exec_io_log', 'di_free', 'fclose', 'stpcpy', 'strlen',
-           '__stack_chk_fail', 'di_malloc', 'strchr', 'pclose',
-           'uname', 'close', 'di_system_packages_allocator_alloc',
-           'read', '__libc_start_main', 'fgets', 'strcmp',
-           'di_system_subarch_analyze', '__gmon_start__', 'strtol',
-           'di_exec_shell_full', 'di_malloc0',
-           'di_system_packages_resolve_dependencies_mark_anna',
-           'di_package_version_compare', 'di_package_version_free',
-           '__vasprintf_chk', 'di_realloc',
-           'di_system_package_check_subarchitecture', 'di_hash_table_size',
-           'open', 'popen', 'fopen', 'rename', 'di_packages_get_package',
-           'exit', 'fwrite', '__fprintf_chk', 'di_package_version_parse',
-           '_ITM_registerTMCloneTable', 'strdup',
-           'di_packages_special_read_file', 'strstr', 'debconfclient_new',
-           'di_system_init', '__cxa_finalize'
-    ]
-    assert find_undefined_functions_util(stdout) == res
-
-
 def test_find_shared_libs_util():
     with open('tests/data/cmds/lddout', 'r') as f:
         stdout = f.readlines()
@@ -256,21 +184,3 @@ def test_find_shared_libs_util():
            '/lib/x86_64-linux-gnu/libc.so.6', '/lib64/ld-linux-x86-64.so.2'
     ]
     assert find_shared_libs_util(stdout) == res
-
-
-@patch("fcan.fcan.find_product", new_callable=find_product_mock)
-def test_filter_product(mock_find_product):
-    with open('tests/data/cmds/lddout', 'r') as f:
-        stdout = f.readlines()
-    res = ['libdebconfclient0', 'libdebian-installer4', 'libc6', 'libc6']
-    init_products = list(filter(None, map(filter_product, stdout)))
-    assert init_products == res
-
-
-def test_match_products():
-    init = ['libdebconfclient0', 'libdebian-installer4', 'libc6', 'libc6']
-    deps = ['libc6-udeb', 'libdebconfclient0-udeb',
-            'libdebian-installer4-udeb', 'cdebconf-udeb']
-    res = ['libdebconfclient0', 'libdebian-installer4',
-           'libc6', 'libc6']
-    assert match_products(init, deps) == res
