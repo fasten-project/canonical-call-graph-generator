@@ -641,10 +641,13 @@ class C_Canonicalizer:
                     product, UNDEFINED_PRODUCT
             )
             if product not in self.dependencies_lookup:
-                resolved_product = UNDEFINED_PRODUCT
-                self.logger.warning(
-                        "Warning: %s not found in dependencies", product
-                )
+                if product == self.product:
+                    resolved_product = self.product
+                else:
+                    resolved_product = UNDEFINED_PRODUCT
+                    self.logger.warning(
+                            "Warning: %s not found in dependencies", product
+                    )
             else:
                 resolved_product = self.dependencies_lookup[product]
             for line in stdout:
