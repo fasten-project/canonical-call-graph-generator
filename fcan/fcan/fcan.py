@@ -182,58 +182,6 @@ def parse_dependency(dep, forge, dep_type, virtuals={}, strip_udeb=False):
             'is_virtual': virtual, 'alternatives': []}
 
 
-def get_product_names(dependencies):
-    """Get product names from a list with dependencies"""
-    names = set()
-    for dep in dependencies:
-        names.add(dep['product'])
-        if 'alternatives' in dep:
-            names.update([alt['product'] for alt in dep['alternatives']])
-    return names
-
-
-def find_nth(string, sub, nth):
-    """Find index of nth substring in a string.
-
-    Return:
-        index of nth substring or -1.
-    """
-    if nth == 1:
-        return string.find(sub)
-    return string.find(sub, find_nth(string, sub, nth - 1) + 1)
-
-
-def find_file(directory, extensions):
-    """Find file with specific extension in a directory.
-
-    Args:
-        extensions: tuple with file extensions.
-
-    Returns:
-        The first file that satisfies the condition or -1 on failure.
-    """
-    for filename in os.listdir(directory):
-        if filename.endswith(extensions):
-            return "{}/{}".format(directory, filename)
-    return None
-
-
-def find_files(directory, extensions):
-    """Find files with specific extensions in a directory.
-
-    Args:
-        extensions: tuple with file extensions.
-
-    Returns:
-        A list with files
-    """
-    res = set()
-    for filename in os.listdir(directory):
-        if filename.endswith(extensions):
-            res.add("{}/{}".format(directory, filename))
-    return list(res)
-
-
 def run_command(arguments, parse_stdout=True):
     """Run a command
 
@@ -451,34 +399,6 @@ def canonicalize_path(path, prefix=None):
     return path
 
 
-def find_undefined_functions_util(objdump_out):
-    """Find undefined functions from objdump output.
-
-    Args:
-        The output of objdump command.
-
-    Returns:
-        A list that contains function names
-    """
-    return [line.split()[-1] for line in objdump_out if "*UND*" in line]
-
-
-def find_undefined_functions(binary):
-    """Find the undefined functions of a binary.
-
-    The binary could be an executable, a shared library, or a static library.
-    We use the objdump util to find the undefined functions.
-
-    Args:
-        The file path of a binary
-
-    Returns:
-        A list that contains function names
-    """
-    stdout, _ = run_command(['objdump', '-T', binary])
-    return find_undefined_functions_util(stdout)
-
-
 def filter_shared_libs(line):
     """Helper function that checks there is a valid shared library in a line
     """
@@ -530,55 +450,6 @@ def get_product_solib(solib):
     if status != 0:
         return 'UNDEFINED'
     return product_name
-
-
-def filter_product(line):
-    """Helper functions to find which package contains a shared library
-    from ldd output line.
-    """
-    if len(line.split()) == 0:
-        return
-    elif "=>" in line or line.split()[0].startswith('/'):
-        lib = line.strip().split()[0]
-        stdout, _ = find_product(lib)
-        return stdout
-
-
-def match_products(products, filter_products):
-    """Match products from one list to products of another list
-
-    Some times two product names may refer to the same product. For example,
-    libc6-udeb refer to libc6 but without the documentation. In such cases,
-    although that in the dependencies of a package lib6-udeb is declared,
-    dpkg detect libc6.
-
-    Args:
-        products: Usually products found using dpkg
-        filter_products: Usually the dependencies of a Debian package
-
-    Returns:
-        A list that contains the match from every product from init_products
-        to test_products.
-    """
-    remove_udeb = lambda x : x[:-5] if x.endswith('-udeb') else x
-    filter_products = list(map(remove_udeb, filter_products))
-    # FIXME add tests
-    return [p if p in filter_products else 'UNDEFINED' for p in products]
-
-
-def find_pkg_of_solib(binary, products):
-    """For each shared library linked to a binary find its package.
-
-    Args:
-        binary: The file path of a binary
-        products: Packages to match to. Usually the dependencies of a package.
-
-    Returns:
-        A list that contains Debian packages names.
-    """
-    stdout, _ = run_command(['ldd', '-d', binary])
-    init_products = list(filter(None, map(filter_product, stdout)))
-    return match_products(init_products, products)
 
 
 class C_Canonicalizer:
