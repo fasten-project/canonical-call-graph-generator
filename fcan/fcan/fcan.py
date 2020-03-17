@@ -687,6 +687,7 @@ class C_Canonicalizer:
                         can_edge[1] = self.nodes[can_edge[1]]['id']
                         self.can_graph['internalCalls'].append(can_edge)
                     else:
+                        can_edge[0] = str(can_edge[0])
                         self.can_graph['externalCalls'].append(can_edge)
 
     def save(self):
