@@ -130,7 +130,7 @@ def parse_dependency(dep, forge, dep_type, virtuals={}, strip_udeb=False):
                 {
                  'product': 'debhelper',
                  'forge': 'debian',
-                 'architectures': '',
+                 'architectures': [],
                  'constraints': '[9,)',
                  'dependency_type': 'Depends',
                  'is_virtual': False,
@@ -142,7 +142,7 @@ def parse_dependency(dep, forge, dep_type, virtuals={}, strip_udeb=False):
                 {
                  'product': 'libdebconfclient-dev',
                  'forge': 'debian',
-                 'architectures': '',
+                 'architectures': [],
                  'constraints': '',
                  'dependency_type': 'Depends',
                  'is_virtual': False,
@@ -150,7 +150,7 @@ def parse_dependency(dep, forge, dep_type, virtuals={}, strip_udeb=False):
                     {
                      'product': 'libdebian-installer4-dev'
                      'forge': 'debian',
-                     'architectures': 'amd64',
+                     'architectures': ['amd64']
                      'constraints': '',
                      'dependency_type': 'Depends',
                      'is_virtual': False,
@@ -174,6 +174,7 @@ def parse_dependency(dep, forge, dep_type, virtuals={}, strip_udeb=False):
     arch = ''
     version, dep = extract_text(dep)
     arch, dep = extract_text(dep, ('[', ']'))
+    arch = list(filter(None, arch.split()))
     _, dep = extract_text(dep, ('<', '>'))
     name = dep.strip()
     name = name[:-5] if name.endswith('-udeb') else name
