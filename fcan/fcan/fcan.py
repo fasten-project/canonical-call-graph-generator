@@ -399,57 +399,47 @@ def canonicalize_path(path, prefix=None):
     return path
 
 
-def filter_shared_libs(line):
-    """Helper function that checks there is a valid shared library in a line
-    """
-    if len(line.split()) == 0:
-        return
-    elif "=>" in line:
-        return line.split('=>')[1].split()[0]
-    elif line.split()[0].startswith('/'):
-        return line.split()[0]
+def find_shared_libs_products(binary):
+    """Find linked shared libraries and their corresponding products.
 
-
-def find_shared_libs_util(ldd_out):
-    """Find shared libraries for ldd output.
-
-    Args:
-        The output of ldd command.
-
-    Returns:
-        A list that contains shared libraries names
-    """
-    return list(filter(None, map(filter_shared_libs, ldd_out)))
-
-
-def find_shared_libs(binary):
-    """Find linked shared libraries.
+    Some times to get the correct product of a shared library we must know
+    the binary that is linked to.
 
     Args:
         The file path of a binary
 
     Returns:
-        A list that contains shared libraries names.
+        A list that contains tuples with shared libraries paths, and
+        their products
     """
+    res = []
+    # Run ldd to detect the shared libraries
     stdout, _ = run_command(['ldd', '-d', binary])
-    return find_shared_libs_util(stdout)
-
-
-def get_product_solib(solib):
-    """Get the product (Debian Package) of a shared library.
-
-    Args:
-        Shared Library
-
-    Returns:
-        Product name
-    """
-    if '/' in solib:
-        solib = solib.split('/')[-1]
-    product_name, status = find_product(solib)
-    if status != 0:
-        return 'UNDEFINED'
-    return product_name
+    solib_names_paths = []  # (name, path or '')
+    for line in stdout:
+        if len(line.split()) == 0:
+            continue
+        elif "=>" in line:
+            name = line.split('=>')[0].split()[0]
+            path = line.split('=>')[1].split()[0]
+            solib_names_paths.append((name, path))
+        elif line.split()[0].startswith('/'):
+            solib_names_paths.append((line.split()[0], ''))
+    # Run dpkg to detect products
+    for name, path in solib_names_paths:
+        stdout, status = run_command(['dpkg', '-S', name])
+        stdout = list(filter(None, stdout))
+        if len(stdout) > 1:
+            product = re.split(':| ', stdout[0])[0]
+            for line in stdout:
+                if line.split(' ')[1] == path:
+                    product = re.split(':| ', line)[0]
+        else:
+            product = stdout = re.split(':| ', stdout[0])[0]
+        if status != 0:
+            product = 'UNDEFINED'
+        res.append((path, product))
+    return res
 
 
 class C_Canonicalizer:
@@ -632,10 +622,8 @@ class C_Canonicalizer:
         """
         solibs = set()
         for b in self.binaries:
-            solibs.update(find_shared_libs(b))
-        solibs = list(solibs)
-        products = [get_product_solib(l) for l in solibs]
-        for solib, product in zip(reversed(solibs), reversed(products)):
+            solibs.update(find_shared_libs_products(b))
+        for solib, product in solibs:
             stdout, _ = run_command(['objdump', '-T', solib])
             resolved_product = self.dependencies_lookup.get(
                     product, UNDEFINED_PRODUCT
