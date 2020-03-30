@@ -900,47 +900,88 @@ def main():
         'Canonicalize Call Graphs to FASTEN Canonical Call Graphs'))
     parser.add_argument('deb', help='deb or udeb file of package')
     parser.add_argument('dsc', help='dsc file of package')
-    parser.add_argument('cgraph', help='edgelist of call graph in txt file')
     parser.add_argument('changelog', help='changelog file of package')
-    parser.add_argument('binaries',
-            help='Directory with analyzed binaries')
-    parser.add_argument('-f', '--forge', default='debian', help=(
-        'forge of the analyzed project. For example, it could be debian, '
-        'or GitHub'))
-    parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
-                        help='print logs to the console')
-    parser.add_argument('-L', '--file-logging', dest='file_logging',
-                        action='store_true',
-                        help='save logs to a file')
-    parser.add_argument('-l', '--logging-level', dest='logging_level',
-                        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO',
-                                 'DEBUG'],
-                        default='DEBUG', help='logging level for logs')
-    parser.add_argument('-c', '--custom-deps', dest='custom_deps',
-                        default=None, help='custom user defined dependencies')
-    parser.add_argument('-r', '--regex-product', dest='regex_product',
-                        default=None,
-                        help='regex (of prefix) to match product\'s files')
-    parser.add_argument('-s', '--source',
-                        default='', help='product\'s source')
-    parser.add_argument('-o', '--output', dest='output', default=None,
-                        help='file to save the canonicalized call graph')
-    parser.add_argument('-a', '--analyzer', default='',
-                        help='Analyzer used to generate the call graphs')
-    parser.add_argument('-R', '--release', choices=['buster', 'bullseye'],
-                        help=('Debian Release. This option is used to get '
-                              'the virtual packages of a release'))
-    parser.add_argument('-d', '--defined-bit', dest='defined_bit',
-                        action='store_true',
-                        help=('Check for bit that declares if a function is '
-                              'defined. In this case a node should have the '
-                              'following format: '
-                              'static|public:0|1:path:function_name'
-                             )
-                       )
+    parser.add_argument(
+            'binaries',
+            help=(
+                'Directory that contain a directory for each analyzed binary. '
+                'Each should have the name of the binary without the '
+                'extension, and should contain the binary, a txt file with'
+                'the call graph in a comma separated edge list, and a .cs'
+                'file produced by csmake to get the linked static libraries.'
+            )
+    )
+    parser.add_argument(
+            '-f', '--forge',
+            default='debian',
+            help=(
+                'Forge of the analyzed project. For example, '
+                'it could be debian, or GitHub'
+            )
+    )
+    parser.add_argument(
+            '-v', '--verbose', dest='verbose',
+            action='store_true',
+            help='print logs to the console'
+    )
+    parser.add_argument(
+            '-L', '--file-logging', dest='file_logging',
+            action='store_true',
+            help='save logs to a file'
+    )
+    parser.add_argument(
+            '-l', '--logging-level', dest='logging_level',
+            choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
+            default='DEBUG',
+            help='logging level for logs'
+    )
+    parser.add_argument(
+            '-c', '--custom-deps', dest='custom_deps',
+            default=None,
+            help='custom user defined dependencies'
+    )
+    parser.add_argument(
+            '-r', '--regex-product', dest='regex_product',
+            default=None,
+            help='regex (of prefix) to match product\'s files'
+    )
+    parser.add_argument(
+            '-s', '--source',
+            default='',
+            help='product\'s source'
+    )
+    parser.add_argument(
+            '-o', '--output', dest='output',
+            default=None,
+            help='file to save the canonicalized call graph'
+    )
+    parser.add_argument(
+            '-a', '--analyzer',
+            default='',
+            help='Analyzer used to generate the call graphs'
+    )
+    parser.add_argument(
+            '-R', '--release',
+            choices=['buster', 'bullseye'],
+           help=(
+               'Debian Release. This option is used to get '
+               'the virtual packages of a release'
+            )
+    )
+    parser.add_argument(
+            '-d', '--defined-bit', dest='defined_bit',
+            action='store_true',
+            help=(
+                'Check for bit that declares if a function is '
+                'defined. In this case a node should have the '
+                'following format: '
+                'static|public:0|1:path:function_name'
+            )
+    )
     args = parser.parse_args()
     virtuals = {}
     if args.release:
+        # Load the virtual packages of the specified Debian release
         release = pkg_resources.resource_filename(
             __name__, 'data/virtual/{}.json'.format(args.release)
             )
