@@ -450,13 +450,13 @@ class C_Canonicalizer:
     You should always run this tool in the environment where the Call-Graph
     produced. The format of the cgraph must be an edge list separated by space.
 
-    **Currently it only supports Debian Packages**
+    **Currently it only supports Debian Packages analyzed by CScout**
 
     To use:
-        can = C_Canonicalizer('file.deb', 'cgraph.txt', 'changelog')
+        can = C_Canonicalizer('file.deb', 'file.dsc', 'changelog', 'binaries')
         can.canonicalize()
     """
-    def __init__(self, deb, dsc, cgraph, changelog, binaries, forge="debian",
+    def __init__(self, deb, dsc, changelog, binaries, forge="debian",
                  source="", console_logging=True, file_logging=False,
                  logging_level='DEBUG', custom_deps=None,
                  product_regex=None, output=None, analyzer="",
@@ -994,7 +994,6 @@ def main():
     can = C_Canonicalizer(
             args.deb,
             args.dsc,
-            args.cgraph,
             args.changelog,
             args.binaries,
             forge=args.forge,
