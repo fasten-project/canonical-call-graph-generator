@@ -467,9 +467,9 @@ class C_Canonicalizer:
         Args:
             deb: deb or udeb filename.
             dsc: dsc filename.
-            cgraph: Call-Graph filename.
             changelog: changelog file.
-            binaries: directory that contains analyzed binaries.
+            binaries: directory that contains directories with the analyzed
+                binaries.
             forge: The forge of the analyzed package.
             console_logging: Enable logs to appear in stdout.
             file_logging: Create a file called debug.log in the 'directory'
@@ -484,11 +484,11 @@ class C_Canonicalizer:
                 implements them.
             release: Debian Release
         Attributes:
-            cgraph: Call-Graph filename.
             deb: deb or udeb filename.
             dsc: dsc filename.
             changelog: changelog file.
-            binaries: list with analyzed binaries.
+            binaries:  dictionary with analyzed binaries' names as keys and a
+                dict with graph, binary, and cs as values.
             forge: Product's forge.
             release: Debian Release
             product: Product's name.
