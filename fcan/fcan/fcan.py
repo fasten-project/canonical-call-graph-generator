@@ -444,6 +444,39 @@ def find_shared_libs_products(binary):
     return res
 
 
+def find_static_libraries_products(cs, aproduct, product_regex):
+    """Find static libraries and their corresponding products.
+
+    Args:
+        cs: The file path of a cscout file
+        aproduct: Analyzed product
+        product_regex: Regex to match libraries of analyzed product
+
+    Returns:
+        A list that contains tuples with static libraries path, and
+        their products
+    """
+    res = []
+    libraries = set()
+    # Find libraries
+    with open(cs, 'r') as f:
+        for line in f.readlines():
+            if line.startswith('#pramge echo "LIBRARIES'):
+                libraries.update(line.strip()[24:-2].split())
+    # Run dpkg to detect products
+    for path in libraries:
+        stdout, status = run_command(['dpkg', '-S', path])
+        if status != 0:
+            if re.match(r'' + product_regex, path):
+                product = aproduct
+            else:
+                product = UNDEFINED_PRODUCT
+        else:
+            product = re.split(':| ', stdout[0])[0]
+        res.append((path, product))
+    return res
+
+
 class C_Canonicalizer:
     """A canonicalizer that transforms C Call-Graphs to FASTEN Call-Graphs
 
@@ -551,7 +584,7 @@ class C_Canonicalizer:
                 self.logger.warning('binary: %s has not a binary', binary)
                 continue
             self.binaries[os.path.basename(binary)] = {
-                    'binary': binary,
+                    'binary': binary_file,
                     'cs': cs_file,
                     'graph': graph
             }
@@ -641,40 +674,18 @@ class C_Canonicalizer:
                 self._parse_dependencies(dsc[dep_type], dep_type, True)
             else:
                 self.logger.warning("Warning: %s has no %s", self.dsc, dep_type)
-
-    def detect_functions(self):
-        """Fill self.functions with all the functions detected in the shared
-        libraries linked to self.binaries
-        """
-        solibs = set()
-        for b in self.binaries:
-            solibs.update(find_shared_libs_products(b))
-        for solib, product in solibs:
-            stdout, _ = run_command(['objdump', '-T', solib])
-            resolved_product = self.dependencies_lookup.get(
-                    product, UNDEFINED_PRODUCT
+        # Parse binaries
+        for binary, values in self.binaries.items():
+            functions = {}
+            solibs = find_shared_libs_products(values['binary'])
+            static_libraries = find_static_libraries_products(
+                    values['cs'], self.product, self.product_regex
             )
-            if product not in self.dependencies_lookup:
-                if product == self.product:
-                    resolved_product = self.product
-                else:
-                    resolved_product = product
-                    self.environment_deps.add(product)
-                    self.logger.warning(
-                            "Warning: %s not found in dependencies", product
-                    )
-            else:
-                resolved_product = self.dependencies_lookup[product]
-            for line in stdout:
-                if 'DF .text' in line or 'iD  .text' in line:
-                    name = line.split()[-1]
-                    if (name in self.functions and
-                            resolved_product != self.functions[name]):
-                        self.logger.warning(
-                            "Warning: %s (%s) already found in %s",
-                            name, resolved_product, self.functions[name]
-                        )
-                    self.functions[name] = resolved_product
+            for solib, product in solibs:
+                self._detect_functions(solib, product, functions, False)
+            for static_lib, product in static_libraries:
+                self._detect_functions(static_lib, product, functions, True)
+            self.binaries[binary]['functions'] = functions
 
     def gen_can_cgraph(self):
         """Generate canonical Call-Graph."""
@@ -735,7 +746,6 @@ class C_Canonicalizer:
 
     def canonicalize(self):
         self.parse_files()
-        self.detect_functions()
         self.gen_can_cgraph()
         self.save()
 
@@ -804,6 +814,43 @@ class C_Canonicalizer:
                         dep['product']
                 )
 
+    def _detect_functions(self, library, product, functions, is_static=True):
+        """Fill functions with all the functions detected in the provided
+        library.
+        """
+        # Find product in dependencies
+        if product not in self.dependencies_lookup:
+            if product == self.product:
+                resolved_product = self.product
+            elif product == UNDEFINED_PRODUCT:
+                resolved_product = UNDEFINED_PRODUCT
+            else:
+                resolved_product = product
+                self.environment_deps.add(product)
+                self.logger.warning(
+                        "Warning: %s not found in dependencies", product
+                )
+        else:
+            resolved_product = self.dependencies_lookup[product]
+        # Find functions
+        if is_static:
+            stdout, _ = run_command(['nm', '-g', library])
+            for line in stdout:
+                line = line.strip().split()
+                if len(line) == 3 and line[1] == 'T':
+                    functions[line[2]] = resolved_product
+        else:
+            stdout, _ = run_command(['objdump', '-T', library])
+            for line in stdout:
+                if 'DF .text' in line or 'iD  .text' in line:
+                    name = line.split()[-1]
+                    if (name in functions and
+                            resolved_product != functions[name]):
+                        self.logger.warning(
+                            "Warning: %s (%s) already found in %s",
+                            name, resolved_product, functions[name]
+                        )
+                    functions[name] = resolved_product
 
     def _parse_node_declaration(self, node):
         _, _, path, _ = self._parse_node_string(node)
