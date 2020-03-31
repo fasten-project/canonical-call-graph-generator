@@ -513,26 +513,50 @@ class C_Canonicalizer:
 
         self.deb = deb
         self.dsc = dsc
-        self.cgraph = cgraph
         self.changelog = changelog
         self.virtuals = virtuals
         self.release = release
+        self.binaries = {}
 
         if not (os.path.exists(self.deb) and os.path.getsize(self.deb) > 0):
             raise CanonicalizationError("deb file not exist or empty")
         if not (os.path.exists(self.dsc) and os.path.getsize(self.dsc) > 0):
             raise CanonicalizationError("dsc file not exist or empty")
-        if not (os.path.exists(self.cgraph) and
-                os.path.getsize(self.cgraph) > 0):
-            raise CanonicalizationError("cgraph file not exist or empty")
         if not (os.path.exists(self.changelog) and
                 os.path.getsize(self.changelog) > 0):
             raise CanonicalizationError("changelog file not exist or empty")
         if not (os.path.exists(binaries) and os.path.isdir(binaries)):
             raise CanonicalizationError("binaries directory not exist")
-        self.binaries = glob.glob(os.path.abspath(binaries + '/*'))
-        if not self.binaries:
+        binaries = glob.glob(os.path.abspath(binaries + '/*'))
+        if not binaries:
             raise CanonicalizationError("binaries directory is empty")
+        for binary in binaries:
+            files = glob.glob(os.path.abspath(binary + '/*'))
+            try:
+                graph = list(filter(lambda x: x.endswith('.txt'), files))[0]
+            except IndexError:
+                self.logger.warning('binary: %s has not a graph', binary)
+                continue
+            try:
+                cs_file = list(filter(lambda x: x.endswith('.cs'), files))[0]
+            except IndexError:
+                self.logger.warning('binary: %s has not a cscout file', binary)
+                continue
+            try:
+                binary_file = list(filter(
+                    lambda x: not x.endswith('.txt') and not x.endswith('.cs'),
+                    files)
+                )[0]
+            except IndexError:
+                self.logger.warning('binary: %s has not a binary', binary)
+                continue
+            self.binaries[os.path.basename(binary)] = {
+                    'binary': binary,
+                    'cs': cs_file,
+                    'graph': graph
+            }
+        if not self.binaries:
+            raise CanonicalizationError("No binaries detected")
 
         self.forge = forge
         self.product = None
