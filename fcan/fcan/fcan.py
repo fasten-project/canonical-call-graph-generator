@@ -472,7 +472,7 @@ def find_static_libraries_products(cs, aproduct, product_regex):
     # Find libraries
     with open(cs, 'r') as f:
         for line in f.readlines():
-            if line.startswith('#pramge echo "LIBRARIES'):
+            if line.startswith('#pragma echo "LIBRARIES'):
                 libraries.update(line.strip()[24:-2].split())
     # Run dpkg to detect products
     for path in libraries:
