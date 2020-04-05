@@ -393,12 +393,23 @@ def canonicalize_path(path, prefix=None):
     path = os.path.abspath(path)
     # Remove /build prefix
     prefix_regex = re.match(r'(/build/[^/]*/[^/]*-[^/]*/)(.*)', path)
-    if prefix and path.startswith('/'):
-        regex = '({})(.*)'.format(prefix)
-        prefix_regex = re.match(regex, path)
+    #  if prefix and path.startswith('/'):
+        #  regex = '({})(.*)'.format(prefix)
+        #  prefix_regex = re.match(regex, path)
     if prefix_regex:
         path = prefix_regex.groups()[1]
     return path
+
+
+def canonicalize_binary_name(binary):
+    """Return the basename of a binary and only the first part of the
+        extension.
+
+    For example, /lib/x86_64-linux-gnu/libc.so.6 would become libc.so
+    """
+    basename = os.path.basename(binary)
+    second_dot = basename.find('.', basename.find('.') + 1)
+    return basename[:second_dot] if second_dot > -1 else basename
 
 
 def find_shared_libs_products(binary):
@@ -533,6 +544,9 @@ class C_Canonicalizer:
             build_dependencies: Product's build dependencies.
             dependencies_lookup: A map from host packages to dependencies.
             can_graph: Canonicalized Call-Graph.
+            cha: A dictionary containing URIs of nodes' declarations
+                categorized based on binaries or static functions.
+            current_binary: Current analyzed binary
             node_id_counter: A counter to set node ids
             nodes: Nodes of analyzed product
             environment_deps: Dependencies that are not declared in deb.
@@ -550,6 +564,17 @@ class C_Canonicalizer:
         self.virtuals = virtuals
         self.release = release
         self.binaries = {}
+        self.forge = forge
+        self.product = None
+        self.source = source
+        self.version = None
+        self.architecture = None
+        self.timestamp = None
+        self.can_graph = {'externalCalls': [], 'internalCalls': []}
+        self.cha = {'binaries': {}, 'static_functions': {}}
+        self.analyzer = analyzer
+        self.defined_bit = defined_bit
+        self.node_id_counter = 0
 
         if not (os.path.exists(self.deb) and os.path.getsize(self.deb) > 0):
             raise CanonicalizationError("deb file not exist or empty")
@@ -583,7 +608,9 @@ class C_Canonicalizer:
             except IndexError:
                 self.logger.warning('binary: %s has not a binary', binary)
                 continue
-            self.binaries[os.path.basename(binary)] = {
+            can_binary = canonicalize_binary_name(binary_file)
+            self.cha['binaries'][can_binary] = {}
+            self.binaries[can_binary] = {
                     'binary': binary_file,
                     'cs': cs_file,
                     'graph': graph
@@ -591,25 +618,13 @@ class C_Canonicalizer:
         if not self.binaries:
             raise CanonicalizationError("No binaries detected")
 
-        self.forge = forge
-        self.product = None
-        self.source = source
-        self.version = None
-        self.architecture = None
-        self.timestamp = None
-        self.can_graph = {'externalCalls': [], 'internalCalls': []}
-        self.analyzer = analyzer
-        self.defined_bit = defined_bit
-        self.node_id_counter = 0
-        self.nodes = {}
-
         # A dict with all functions of the shared libraries linked to the
         # binaries, we use this dict to detect the products of undefined
         # functions
         self.functions = {}
 
         # A cache to minimize the calls of find_product
-        self.paths_lookup = {}
+        self.find_product_cache = {}
 
         # Nodes that contain one of those values are skipped from the canonical
         # Call-Graph
@@ -689,37 +704,65 @@ class C_Canonicalizer:
 
     def gen_can_cgraph(self):
         """Generate canonical Call-Graph."""
-        with open(self.cgraph, 'r') as fdr:
+        for binary in self.binaries.keys():
+            self._parse_graph(binary)
+
+    def _parse_graph(self, binary):
+        """Generate canonical Call-Graph."""
+        self.current_binary = binary
+        with open(self.binaries[binary]['graph'], 'r') as fdr:
             # An element could be a node declaration, or an edge of the call
             # graph
             elements = csv.reader(fdr, delimiter=' ')
             for el in elements:
                 if len(el) == 1:
                     can_node, path = self._parse_node_declaration(el[0])
-                    # Insert to self.nodes only nodes from analyzed product
-                    if can_node.startswith('//'):
+                    # Insert nodes only from the analyzed product.
+                    # External nodes contain 5 slashes.
+                    if can_node.count('/') == 5:
                         continue
                     if path.endswith('.cs'):  # Skip cscout files
                         continue
-                    if can_node not in self.nodes:
-                        self.nodes[can_node] = {
-                                "id": self.node_id_counter,
-                                "files": [path]
+                    # Static function
+                    if ';' in can_node.split('/')[-1]:
+                        target = self.cha['static_functions']
+                    else:
+                        target = self.cha['binaries'][binary]
+                    if can_node not in target:
+                        target[can_node] = {
+                            "id": self.node_id_counter,
+                            "files": [path]
                         }
                         self.node_id_counter += 1
-                    else:
-                        self.nodes[can_node]['files'].append(path)
+                    elif path not in target[can_node]['files']:
+                        target[can_node]['files'].append(path)
+                        self.node_id_counter += 1
                 else:
                     can_edge = self._parse_edge(el)
                     # If the product of the first node is not the analyzed or
                     # if the product of either nodes is in rules skip that edge
-                    if (can_edge[0].startswith('//') or
+                    if (can_edge[0].count('/') == 5 or
                         (any(r in can_edge[0] for r in self.rules) or
                          any(r in can_edge[1] for r in self.rules))):
                         continue
-                    can_edge[0] = self.nodes[can_edge[0]]['id']
-                    if can_edge[1] in self.nodes:
-                        can_edge[1] = self.nodes[can_edge[1]]['id']
+                    if can_edge[0] in self.cha['static_functions']:
+                        target = self.cha['static_functions']
+                    elif can_edge[0] in self.cha['binaries'][binary]:
+                        target = self.cha['binaries'][binary]
+                    else:
+                        self.logger.warning("Warning: node %s is not defined",
+                                self.can_edge[0]
+                        )
+                        continue
+                    can_edge[0] = target[can_edge[0]]['id']
+                    if can_edge[1] in self.cha['static_functions']:
+                        target = self.cha['static_functions']
+                    elif can_edge[1] in self.cha['binaries'][binary]:
+                        target = self.cha['binaries'][binary]
+                    else:
+                        target = False
+                    if target:
+                        can_edge[1] = target[can_edge[1]]['id']
                         self.can_graph['internalCalls'].append(can_edge)
                     else:
                         can_edge[0] = str(can_edge[0])
@@ -739,7 +782,7 @@ class C_Canonicalizer:
             'build_depset': self.build_dependencies,
             'undeclared_depset': self._get_environment_dependenies(),
             'graph': self.can_graph,
-            'cha': self.nodes
+            'cha': self.cha
         }
         with open(self.output, 'w') as fdr:
             json.dump(data, fdr)
@@ -833,12 +876,13 @@ class C_Canonicalizer:
         else:
             resolved_product = self.dependencies_lookup[product]
         # Find functions
+        can_library = canonicalize_binary_name(library)
         if is_static:
             stdout, _ = run_command(['nm', '-g', library])
             for line in stdout:
                 line = line.strip().split()
                 if len(line) == 3 and line[1] == 'T':
-                    functions[line[2]] = resolved_product
+                    functions[line[2]] = (can_library, resolved_product)
         else:
             stdout, _ = run_command(['objdump', '-T', library])
             for line in stdout:
@@ -846,16 +890,21 @@ class C_Canonicalizer:
                     name = line.split()[-1]
                     if (name in functions and
                             resolved_product != functions[name]):
-                        self.logger.warning(
+                        self.logger.debug(
                             "Warning: %s (%s) already found in %s",
                             name, resolved_product, functions[name]
                         )
-                    functions[name] = resolved_product
+                    functions[name] = (can_library, resolved_product)
 
     def _parse_node_declaration(self, node):
+        """Returns uri, and path. We need path separately to save the filename
+           of the file when needed.
+        """
         _, _, path, _ = self._parse_node_string(node)
         path = canonicalize_path(path, self.product_regex)
         can_uri = self._get_uri(node)
+        if path == '':
+            __import__('pdb').set_trace()
         return can_uri, path
 
     def _parse_edge(self, edge):
@@ -864,25 +913,19 @@ class C_Canonicalizer:
         return [node1, node2]
 
     def _get_uri(self, node):
-        product, namespace, function = self._parse_node(node)
-        if (product not in self.dependencies_lookup and
-                product not in self.rules and
-                product != self.product and
-                product not in self.environment_deps and
-                product != UNDEFINED_PRODUCT):
-            self.logger.warning(
-                "Warning: %s not found in dependencies", product
-            )
-            self.environment_deps.add(product)
-        return self._uri_generator(product, namespace, function)
-
-    def _uri_generator(self, product, namespace, function):
+        product, binary, namespace, function = self._parse_node(node)
         forge_product_version = ''
         if product != self.product:
             forge_product_version += '//' + product
-        return '{}/{}/{}'.format(forge_product_version, namespace, function)
+        return '{}/{}/{}/{}'.format(
+                forge_product_version, binary, namespace, function
+                )
 
     def _parse_node_string(self, node):
+        """We need this function because we may support more formats in the
+           future.
+        """
+        # FIXME maybe we don't need is_defined
         is_defined = True
         if self.defined_bit:
             scope, is_defined, path, entity = node.split(':')
@@ -893,8 +936,10 @@ class C_Canonicalizer:
 
     def _parse_node(self, node):
         scope, is_defined, path, entity = self._parse_node_string(node)
+        is_static = True if scope == 'static' else False
         product = self._find_product(path, entity)
-        if scope == 'static':
+        binary = self._find_binary(entity, product, is_static)
+        if is_static:
             namespace = canonicalize_path(path, self.product_regex)
             # TODO Create pct_encode function
             slash = namespace.rfind('/')
@@ -908,38 +953,65 @@ class C_Canonicalizer:
         else:
             namespace = 'C'
             function = entity + '()'
-        return product, namespace, function
+        return product, binary, namespace, function
+
+    def _find_binary(self, function, product, is_static):
+        if is_static:
+            return ''
+        # TODO Maybe we should check if it comes from a another shared library
+        # of the same product.
+        if product == self.product:
+            return self.current_binary
+        if function in self.binaries[self.current_binary]['functions']:
+            return self.binaries[self.current_binary]['functions'][function][0]
+        self.logger.debug(
+            "Warning: could not detect binary of function %s, from product %s",
+            function, product
+        )
+        # TODO we could try to get binary if we know the product by running
+        # `dpkg-query -L product` and then find all functions declared in
+        # .a and .so files.
+        return ''
 
     def _find_product(self, path, function):
+        product = None
         # Check if function is in the functions found in shared libraries
-        if function in self.functions:
-            return self.functions[function]
-        # Check if path is in paths_lookup
-        if path in self.paths_lookup:
-            stdout, status = self.paths_lookup[path]
-            if status == 0:
-                return stdout
+        if function in self.binaries[self.current_binary]['functions']:
+            product = self.binaries[self.current_binary]['functions'][function][1]
+        # Check if path is in find_product_cache
+        if path in self.find_product_cache and product is None:
+            stdout, status = self.find_product_cache[path]
+            product = stdout if status == 0 else UNDEFINED_PRODUCT
         # Check if the callable belongs to the analyzed product
-        if re.match(r'' + self.product_regex, path):
+        if re.match(r'' + self.product_regex, path) and product is None:
             self.logger.debug("product match: %s", path)
-            return self.product
-        # Detect product by examining the path
-        if path not in self.paths_lookup:
-            stdout, status = find_product(path)
-            self.paths_lookup[path] = (stdout, status)
-            if status == 0:
-                return stdout
+            product = self.product
         # Check if it is a product from custom deps based on the path
-        if self.custom_deps is not None:
+        if self.custom_deps is not None and product is None:
             product = check_custom_deps(path, self.custom_deps)
-            if product is not None:
-                return product
-        if not path.startswith('/'):
-            return self.product
-        self.logger.warning(
+        # Detect product by examining the path
+        if path not in self.find_product_cache and product is None:
+            stdout, status = find_product(path)
+            self.find_product_cache[path] = (stdout, status)
+            product = stdout if status == 0 else UNDEFINED_PRODUCT
+        if not path.startswith('/') and product is None:
+            product = self.product
+        if product is None:
+            self.logger.warning(
                 "Warning: UNDEFINED match: path %s, function %s", path, function
-        )
-        return UNDEFINED_PRODUCT
+            )
+            return UNDEFINED_PRODUCT
+        else:
+            if (product not in self.dependencies_lookup and
+                    product not in self.rules and
+                    product != self.product and
+                    product not in self.environment_deps and
+                    product != UNDEFINED_PRODUCT):
+                self.logger.warning(
+                    "Warning: %s not found in dependencies", product
+                )
+                self.environment_deps.add(product)
+            return product
 
     def _get_environment_dependenies(self):
         """Add products that dpkg detected but we don't have them as deps.
