@@ -917,7 +917,7 @@ class C_Canonicalizer:
         forge_product_version = ''
         if product != self.product:
             forge_product_version += '//' + product
-        return '{}/{}/{}/{}'.format(
+        return '{}/{};{}/{}'.format(
                 forge_product_version, binary, namespace, function
                 )
 
