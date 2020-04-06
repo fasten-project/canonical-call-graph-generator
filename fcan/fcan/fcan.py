@@ -719,7 +719,7 @@ class C_Canonicalizer:
                     can_node, path = self._parse_node_declaration(el[0])
                     # Insert nodes only from the analyzed product.
                     # External nodes contain 5 slashes.
-                    if can_node.count('/') == 5:
+                    if can_node.startswith('//'):
                         continue
                     if path.endswith('.cs'):  # Skip cscout files
                         continue
@@ -741,7 +741,7 @@ class C_Canonicalizer:
                     can_edge = self._parse_edge(el)
                     # If the product of the first node is not the analyzed or
                     # if the product of either nodes is in rules skip that edge
-                    if (can_edge[0].count('/') == 5 or
+                    if (can_edge[0].startswith('//') or
                         (any(r in can_edge[0] for r in self.rules) or
                          any(r in can_edge[1] for r in self.rules))):
                         continue
