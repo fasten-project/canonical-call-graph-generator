@@ -908,9 +908,11 @@ class C_Canonicalizer:
         return [node1, node2]
 
     def _get_uri(self, node):
-        product, binary, namespace, function = self._parse_node(node)
+        product, binary, namespace, function, is_static= self._parse_node(node)
         forge_product_version = ''
         if product != self.product:
+            if binary.endswith('.so') or (binary == '' and not is_static):
+                product = ''
             forge_product_version += '//' + product
         return '{}/{};{}/{}'.format(
                 forge_product_version, binary, namespace, function
@@ -948,7 +950,7 @@ class C_Canonicalizer:
         else:
             namespace = 'C'
             function = entity + '()'
-        return product, binary, namespace, function
+        return product, binary, namespace, function, is_static
 
     def _find_binary(self, function, product, is_static):
         if is_static:
