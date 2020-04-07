@@ -963,9 +963,6 @@ class C_Canonicalizer:
             "Warning: could not detect binary of function %s, from product %s",
             function, product
         )
-        # TODO we could try to get binary if we know the product by running
-        # `dpkg-query -L product` and then find all functions declared in
-        # .a and .so files.
         return ''
 
     def _find_product(self, path, function):
