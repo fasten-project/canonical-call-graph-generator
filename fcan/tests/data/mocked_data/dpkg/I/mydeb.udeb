@@ -1,0 +1,13 @@
+ new Debian package, version 2.0.
+ size 57852 bytes: control archive=49456 bytes.
+     367 bytes,     9 lines      control              
+  182919 bytes,  1328 lines      templates            
+ Package: anna
+ Version: 1.71
+ Architecture: amd64
+ Maintainer: Debian Install System Team <debian-boot@lists.debian.org>
+ Installed-Size: 212
+ Depends: libc6-udeb (>= 2.28), libdebconfclient0-udeb, libdebian-installer4-udeb (>= 0.119), cdebconf-udeb
+ Section: debian-installer
+ Priority: standard
+ Description: anna's not nearly apt, but for the Debian installer, it will do
