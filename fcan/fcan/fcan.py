@@ -343,8 +343,6 @@ def parse_deb_file(filename):
         line = line.strip()
         if line.startswith('Package:'):
             res['Package'] = line[line.find(':')+1:].strip()
-        elif line.startswith('Source:'):
-            res['Source'] = line[line.find(':')+1:].strip()
         elif line.startswith('Version:'):
             res['Version'] = line[line.find(':')+1:].strip()
         elif line.startswith('Architecture:'):
@@ -393,9 +391,6 @@ def canonicalize_path(path, prefix=None):
     path = os.path.abspath(path)
     # Remove /build prefix
     prefix_regex = re.match(r'(/build/[^/]*/[^/]*-[^/]*/)(.*)', path)
-    #  if prefix and path.startswith('/'):
-        #  regex = '({})(.*)'.format(prefix)
-        #  prefix_regex = re.match(regex, path)
     if prefix_regex:
         path = prefix_regex.groups()[1]
     return path
@@ -437,7 +432,7 @@ def find_shared_libs_products(binary):
             path = line.split('=>')[1].split()[0]
             solib_names_paths.append((name, path))
         elif line.split()[0].startswith('/'):
-            solib_names_paths.append((line.split()[0], ''))
+            solib_names_paths.append((line.split()[0], (line.split()[0])))
     # Run dpkg to detect products
     for name, path in solib_names_paths:
         stdout, status = run_command(['dpkg', '-S', name])
@@ -473,7 +468,7 @@ def find_static_libraries_products(cs, aproduct, product_regex):
     with open(cs, 'r') as f:
         for line in f.readlines():
             if line.startswith('#pragma echo "LIBRARIES'):
-                libraries.update(line.strip()[24:-2].split())
+                libraries.update(line.strip()[24:-3].split())
     # Run dpkg to detect products
     for path in libraries:
         stdout, status = run_command(['dpkg', '-S', path])
@@ -898,8 +893,6 @@ class C_Canonicalizer:
         _, _, path, _ = self._parse_node_string(node)
         path = canonicalize_path(path, self.product_regex)
         can_uri = self._get_uri(node)
-        if path == '':
-            __import__('pdb').set_trace()
         return can_uri, path
 
     def _parse_edge(self, edge):
