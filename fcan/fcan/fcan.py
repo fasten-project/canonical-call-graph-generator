@@ -618,11 +618,6 @@ class C_Canonicalizer:
         if not self.binaries:
             raise CanonicalizationError("No binaries detected")
 
-        # A dict with all functions of the shared libraries linked to the
-        # binaries, we use this dict to detect the products of undefined
-        # functions
-        self.functions = {}
-
         # A cache to minimize the calls of find_product
         self.find_product_cache = {}
 
@@ -1016,15 +1011,15 @@ class C_Canonicalizer:
     def _get_environment_dependenies(self):
         """Add products that dpkg detected but we don't have them as deps.
 
-        Orphan dependencies are probably Essential packages. You can find more
-        about essential packages here:
+        Environment dependencies are probably Essential packages.
+        You can find more about essential packages here:
         https://www.debian.org/doc/debian-policy/ch-binary.html#essential-packages
         """
         depset = []
-        for orph in self.environment_deps:
+        for prod in self.environment_deps:
             depset.append({
                 'forge': 'debian',
-                'product': orph,
+                'product': prod,
                 'architectures': '',
                 'constraints': '',
                 'dependency_type': '',
