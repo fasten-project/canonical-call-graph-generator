@@ -498,12 +498,13 @@ class C_Canonicalizer:
         can = C_Canonicalizer('file.deb', 'file.dsc', 'changelog', 'binaries')
         can.canonicalize()
     """
+
     def __init__(self, deb, dsc, changelog, binaries, forge="debian",
                  source="", console_logging=True, file_logging=False,
                  logging_level='DEBUG', custom_deps=None,
                  product_regex=None, output=None, analyzer="",
                  defined_bit=False, virtuals={}, release=""
-                ):
+                 ):
         """C_Canonicalizer constructor.
 
         Args:
@@ -609,9 +610,9 @@ class C_Canonicalizer:
             can_binary = canonicalize_binary_name(binary_file)
             self.cha['binaries'][can_binary] = {}
             self.binaries[can_binary] = {
-                    'binary': binary_file,
-                    'cs': cs_file,
-                    'graph': graph
+                'binary': binary_file,
+                'cs': cs_file,
+                'graph': graph
             }
         if not self.binaries:
             raise CanonicalizationError("No binaries detected")
@@ -676,18 +677,20 @@ class C_Canonicalizer:
             if dep_type in dpkg:
                 self._parse_dependencies(dpkg[dep_type], dep_type)
             else:
-                self.logger.warning("Warning: %s has no %s", self.deb, dep_type)
+                self.logger.warning(
+                    "Warning: %s has no %s", self.deb, dep_type)
         for dep_type in BUILD_DEPENDENCIES:
             if dep_type in dsc:
                 self._parse_dependencies(dsc[dep_type], dep_type, True)
             else:
-                self.logger.warning("Warning: %s has no %s", self.dsc, dep_type)
+                self.logger.warning(
+                    "Warning: %s has no %s", self.dsc, dep_type)
         # Parse binaries
         for binary, values in self.binaries.items():
             functions = {}
             solibs = find_shared_libs_products(values['binary'])
             static_libraries = find_static_libraries_products(
-                    values['cs'], self.product, self.product_regex
+                values['cs'], self.product, self.product_regex
             )
             for solib, product in solibs:
                 self._detect_functions(solib, product, functions, False)
@@ -744,8 +747,8 @@ class C_Canonicalizer:
                         target = self.cha['binaries'][binary]
                     else:
                         self.logger.warning("Warning: node %s is not defined",
-                                self.can_edge[0]
-                        )
+                                            self.can_edge[0]
+                                            )
                         continue
                     can_edge[0] = target[can_edge[0]]['id']
                     if can_edge[1] in self.cha['static_functions']:
@@ -761,7 +764,7 @@ class C_Canonicalizer:
                         can_edge[0] = str(can_edge[0])
                         if not can_edge[1].startswith('//'):
                             can_edge[1] = '///{}'.format(
-                                    can_edge[1][can_edge[1].find(';'):]
+                                can_edge[1][can_edge[1].find(';'):]
                             )
                         self.can_graph['externalCalls'].append(can_edge)
 
@@ -851,8 +854,8 @@ class C_Canonicalizer:
                     self.dependencies_lookup[p] = base_product
             else:
                 self.logger.warning("Warning: %s not in self.virtuals",
-                        dep['product']
-                )
+                                    dep['product']
+                                    )
 
     def _detect_functions(self, library, product, functions, is_static=True):
         """Fill functions with all the functions detected in the provided
@@ -868,7 +871,7 @@ class C_Canonicalizer:
                 resolved_product = product
                 self.environment_deps.add(product)
                 self.logger.warning(
-                        "Warning: %s not found in dependencies", product
+                    "Warning: %s not found in dependencies", product
                 )
         else:
             resolved_product = self.dependencies_lookup[product]
@@ -908,15 +911,16 @@ class C_Canonicalizer:
         return [node1, node2]
 
     def _get_uri(self, node):
-        product, binary, namespace, function, is_static= self._parse_node(node)
+        product, binary, namespace, function, is_static = self._parse_node(
+            node)
         forge_product_version = ''
         if product != self.product:
             if binary.endswith('.so') or (binary == '' and not is_static):
                 product = ''
             forge_product_version += '//' + product
         return '{}/{};{}/{}'.format(
-                forge_product_version, binary, namespace, function
-                )
+            forge_product_version, binary, namespace, function
+        )
 
     def _parse_node_string(self, node):
         """We need this function because we may support more formats in the
@@ -1039,81 +1043,81 @@ def main():
     parser.add_argument('dsc', help='dsc file of package')
     parser.add_argument('changelog', help='changelog file of package')
     parser.add_argument(
-            'binaries',
-            help=(
-                'Directory that contain a directory for each analyzed binary. '
-                'Each should have the name of the binary without the '
-                'extension, and should contain the binary, a txt file with'
-                'the call graph in a comma separated edge list, and a .cs'
-                'file produced by csmake to get the linked static libraries.'
-            )
+        'binaries',
+        help=(
+            'Directory that contain a directory for each analyzed binary. '
+            'Each should have the name of the binary without the '
+            'extension, and should contain the binary, a txt file with'
+            'the call graph in a comma separated edge list, and a .cs'
+            'file produced by csmake to get the linked static libraries.'
+        )
     )
     parser.add_argument(
-            '-f', '--forge',
-            default='debian',
-            help=(
+        '-f', '--forge',
+        default='debian',
+        help=(
                 'Forge of the analyzed project. For example, '
                 'it could be debian, or GitHub'
-            )
+        )
     )
     parser.add_argument(
-            '-v', '--verbose', dest='verbose',
-            action='store_true',
-            help='print logs to the console'
+        '-v', '--verbose', dest='verbose',
+        action='store_true',
+        help='print logs to the console'
     )
     parser.add_argument(
-            '-L', '--file-logging', dest='file_logging',
-            action='store_true',
-            help='save logs to a file'
+        '-L', '--file-logging', dest='file_logging',
+        action='store_true',
+        help='save logs to a file'
     )
     parser.add_argument(
-            '-l', '--logging-level', dest='logging_level',
-            choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
-            default='DEBUG',
-            help='logging level for logs'
+        '-l', '--logging-level', dest='logging_level',
+        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
+        default='DEBUG',
+        help='logging level for logs'
     )
     parser.add_argument(
-            '-c', '--custom-deps', dest='custom_deps',
-            default=None,
-            help='custom user defined dependencies'
+        '-c', '--custom-deps', dest='custom_deps',
+        default=None,
+        help='custom user defined dependencies'
     )
     parser.add_argument(
-            '-r', '--regex-product', dest='regex_product',
-            default=None,
-            help='regex (of prefix) to match product\'s files'
+        '-r', '--regex-product', dest='regex_product',
+        default=None,
+        help='regex (of prefix) to match product\'s files'
     )
     parser.add_argument(
-            '-s', '--source',
-            default='',
-            help='product\'s source'
+        '-s', '--source',
+        default='',
+        help='product\'s source'
     )
     parser.add_argument(
-            '-o', '--output', dest='output',
-            default=None,
-            help='file to save the canonicalized call graph'
+        '-o', '--output', dest='output',
+        default=None,
+        help='file to save the canonicalized call graph'
     )
     parser.add_argument(
-            '-a', '--analyzer',
-            default='',
-            help='Analyzer used to generate the call graphs'
+        '-a', '--analyzer',
+        default='',
+        help='Analyzer used to generate the call graphs'
     )
     parser.add_argument(
-            '-R', '--release',
-            choices=['buster', 'bullseye'],
-           help=(
-               'Debian Release. This option is used to get '
-               'the virtual packages of a release'
-            )
+        '-R', '--release',
+        choices=['buster', 'bullseye'],
+        help=(
+            'Debian Release. This option is used to get '
+            'the virtual packages of a release'
+        )
     )
     parser.add_argument(
-            '-d', '--defined-bit', dest='defined_bit',
-            action='store_true',
-            help=(
-                'Check for bit that declares if a function is '
-                'defined. In this case a node should have the '
-                'following format: '
-                'static|public:0|1:path:function_name'
-            )
+        '-d', '--defined-bit', dest='defined_bit',
+        action='store_true',
+        help=(
+            'Check for bit that declares if a function is '
+            'defined. In this case a node should have the '
+            'following format: '
+            'static|public:0|1:path:function_name'
+        )
     )
     args = parser.parse_args()
     virtuals = {}
@@ -1121,7 +1125,7 @@ def main():
         # Load the virtual packages of the specified Debian release
         release = pkg_resources.resource_filename(
             __name__, 'data/virtual/{}.json'.format(args.release)
-            )
+        )
         with open(release, 'r') as f:
             virtuals = json.load(f)
         release = args.release
@@ -1129,21 +1133,21 @@ def main():
         release = ''
 
     can = C_Canonicalizer(
-            args.deb,
-            args.dsc,
-            args.changelog,
-            args.binaries,
-            forge=args.forge,
-            source=args.source,
-            console_logging=args.verbose,
-            file_logging=args.file_logging,
-            logging_level=args.logging_level,
-            custom_deps=args.custom_deps,
-            product_regex=args.regex_product,
-            analyzer=args.analyzer,
-            defined_bit=args.defined_bit,
-            virtuals=virtuals,
-            release=release
+        args.deb,
+        args.dsc,
+        args.changelog,
+        args.binaries,
+        forge=args.forge,
+        source=args.source,
+        console_logging=args.verbose,
+        file_logging=args.file_logging,
+        logging_level=args.logging_level,
+        custom_deps=args.custom_deps,
+        product_regex=args.regex_product,
+        analyzer=args.analyzer,
+        defined_bit=args.defined_bit,
+        virtuals=virtuals,
+        release=release
     )
     can.canonicalize()
 
