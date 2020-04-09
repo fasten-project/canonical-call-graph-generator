@@ -761,7 +761,7 @@ class C_Canonicalizer:
                         can_edge[0] = str(can_edge[0])
                         if not can_edge[1].startswith('//'):
                             can_edge[1] = '///{}'.format(
-                                    can_edge[1][can_edge[1].find(';')+1:]
+                                    can_edge[1][can_edge[1].find(';'):]
                             )
                         self.can_graph['externalCalls'].append(can_edge)
 
