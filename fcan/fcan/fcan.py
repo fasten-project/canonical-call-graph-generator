@@ -747,7 +747,7 @@ class C_Canonicalizer:
                         target = self.cha['binaries'][binary]
                     else:
                         self.logger.warning("Warning: node %s is not defined",
-                                            self.can_edge[0]
+                                            can_edge[0]
                                             )
                         continue
                     can_edge[0] = target[can_edge[0]]['id']
@@ -806,7 +806,7 @@ class C_Canonicalizer:
             self.logger.addHandler(cons_h)
         if file_logging:
             # create file handler
-            file_h = logging.FileHandler(self.directory + '/fcan.log')
+            file_h = logging.FileHandler('fcan.log')
             file_h.setLevel(logging_level)
             file_h.setFormatter(formatter)
             self.logger.addHandler(file_h)
@@ -936,7 +936,7 @@ class C_Canonicalizer:
         return scope, is_defined, path, entity
 
     def _parse_node(self, node):
-        scope, is_defined, path, entity = self._parse_node_string(node)
+        scope, _, path, entity = self._parse_node_string(node)
         is_static = True if scope == 'static' else False
         product = self._find_product(path, entity)
         binary = self._find_binary(entity, product, is_static)
