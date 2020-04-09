@@ -410,7 +410,7 @@ def canonicalize_binary_name(binary):
 def find_shared_libs_products(binary):
     """Find linked shared libraries and their corresponding products.
 
-    Some times to get the correct product of a shared library we must know
+    Sometimes to get the correct product of a shared library we must know
     the binary that is linked to.
 
     Args:
@@ -430,6 +430,9 @@ def find_shared_libs_products(binary):
         elif "=>" in line:
             name = line.split('=>')[0].split()[0]
             path = line.split('=>')[1].split()[0]
+            if path == 'not':  # library not found
+                # add the library in the results with library name
+                continue
             solib_names_paths.append((name, path))
         elif line.split()[0].startswith('/'):
             solib_names_paths.append((line.split()[0], (line.split()[0])))
@@ -756,6 +759,10 @@ class C_Canonicalizer:
                         self.can_graph['internalCalls'].append(can_edge)
                     else:
                         can_edge[0] = str(can_edge[0])
+                        if not can_edge[1].startswith('//'):
+                            can_edge[1] = '///{}'.format(
+                                    can_edge[1][can_edge[1].find(';')+1:]
+                            )
                         self.can_graph['externalCalls'].append(can_edge)
 
     def save(self):
