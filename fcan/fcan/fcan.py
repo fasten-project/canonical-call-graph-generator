@@ -503,7 +503,7 @@ class C_Canonicalizer:
                  source="", console_logging=True, file_logging=False,
                  logging_level='DEBUG', custom_deps=None,
                  product_regex=None, output=None, analyzer="",
-                 defined_bit=False, virtuals={}, release=""
+                 virtuals={}, release=""
                  ):
         """C_Canonicalizer constructor.
 
@@ -521,8 +521,6 @@ class C_Canonicalizer:
             product_regex: Regex to match products files
             output: File to save the canonicalized call graph
             analyzer: Analyzer used to generate the call graphs.
-            defined_bit: Input nodes have a bit to declare if a function is
-                defined or not.
             virtuals: Map from virtual packages to list of packages that
                 implements them.
             release: Debian Release
@@ -572,7 +570,6 @@ class C_Canonicalizer:
         self.can_graph = {'externalCalls': [], 'internalCalls': []}
         self.cha = {'binaries': {}, 'static_functions': {}}
         self.analyzer = analyzer
-        self.defined_bit = defined_bit
         self.node_id_counter = 0
 
         if not (os.path.exists(self.deb) and os.path.getsize(self.deb) > 0):
@@ -712,7 +709,9 @@ class C_Canonicalizer:
             elements = csv.reader(fdr, delimiter=' ')
             for el in elements:
                 if len(el) == 1:
-                    can_node, path = self._parse_node_declaration(el[0])
+                    can_node, path, scope, is_defined, lines = (
+                        self._parse_node_declaration(el[0])
+                    )
                     # Insert nodes only from the analyzed product.
                     # External nodes contain 5 slashes.
                     if can_node.startswith('//'):
@@ -725,9 +724,16 @@ class C_Canonicalizer:
                     else:
                         target = self.cha['binaries'][binary]
                     if can_node not in target:
+                        first, last = lines.split(";")
                         target[can_node] = {
                             "id": self.node_id_counter,
-                            "files": [path]
+                            "files": [path],
+                            "metadata": {
+                                "access": scope,
+                                "defined": is_defined,
+                                "first": first,
+                                "last": last
+                            }
                         }
                         self.node_id_counter += 1
                     elif path not in target[can_node]['files']:
@@ -900,10 +906,10 @@ class C_Canonicalizer:
         """Returns uri, and path. We need path separately to save the filename
            of the file when needed.
         """
-        _, _, path, _ = self._parse_node_string(node)
+        scope, is_defined, lines, path, _ = self._parse_node_string(node)
         path = canonicalize_path(path, self.product_regex)
         can_uri = self._get_uri(node)
-        return can_uri, path
+        return can_uri, path, scope, is_defined, lines
 
     def _parse_edge(self, edge):
         node1 = self._get_uri(edge[0])
@@ -926,17 +932,12 @@ class C_Canonicalizer:
         """We need this function because we may support more formats in the
            future.
         """
-        # FIXME maybe we don't need is_defined
-        is_defined = True
-        if self.defined_bit:
-            scope, is_defined, path, entity = node.split(':')
-            is_defined = False if is_defined == '0' else True
-        else:
-            scope, path, entity = node.split(':')
-        return scope, is_defined, path, entity
+        scope, is_defined, lines, path, entity = node.split(':')
+        is_defined = False if is_defined == '0' else True
+        return scope, is_defined, lines, path, entity
 
     def _parse_node(self, node):
-        scope, _, path, entity = self._parse_node_string(node)
+        scope, _, _, path, entity = self._parse_node_string(node)
         is_static = True if scope == 'static' else False
         product = self._find_product(path, entity)
         binary = self._find_binary(entity, product, is_static)
@@ -1109,16 +1110,6 @@ def main():
             'the virtual packages of a release'
         )
     )
-    parser.add_argument(
-        '-d', '--defined-bit', dest='defined_bit',
-        action='store_true',
-        help=(
-            'Check for bit that declares if a function is '
-            'defined. In this case a node should have the '
-            'following format: '
-            'static|public:0|1:path:function_name'
-        )
-    )
     args = parser.parse_args()
     virtuals = {}
     if args.release:
@@ -1145,7 +1136,6 @@ def main():
         custom_deps=args.custom_deps,
         product_regex=args.regex_product,
         analyzer=args.analyzer,
-        defined_bit=args.defined_bit,
         virtuals=virtuals,
         release=release
     )
