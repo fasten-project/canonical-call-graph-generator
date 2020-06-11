@@ -5,14 +5,15 @@
 #pragma project "anna"
 #pragma block_enter
 
-#pragma echo "Processing /build/anna/anna-1.71/retriever.c\n"
+#pragma echo "Processing /build/anna-VgvUV2/anna-1.71/retriever.c\n"
 #pragma block_enter
 #pragma clear_defines
 #pragma clear_include
-#pragma pushd "/build/anna/anna-1.71"
+#pragma pushd "/build/anna-VgvUV2/anna-1.71"
 #include "/usr/local/include/cscout/csmake-pre-defs.h"
-#pragma includepath "/usr/lib/gcc/x86_64-linux-gnu/9/include"
+#pragma includepath "/usr/lib/gcc/x86_64-linux-gnu/8/include"
 #pragma includepath "/usr/local/include"
+#pragma includepath "/usr/lib/gcc/x86_64-linux-gnu/8/include-fixed"
 #pragma includepath "/usr/include/x86_64-linux-gnu"
 #pragma includepath "/usr/include"
 #define __STDC__ 1
@@ -20,10 +21,10 @@
 #define __STDC_UTF_16__ 1
 #define __STDC_UTF_32__ 1
 #define __STDC_HOSTED__ 1
-#define __GNUC__ 9
+#define __GNUC__ 8
 #define __GNUC_MINOR__ 3
 #define __GNUC_PATCHLEVEL__ 0
-#define __VERSION__ "9.3.0"
+#define __VERSION__ "8.3.0"
 #define __ATOMIC_RELAXED 0
 #define __ATOMIC_SEQ_CST 5
 #define __ATOMIC_ACQUIRE 2
@@ -177,7 +178,7 @@
 #define __FLT_MAX_10_EXP__ 38
 #define __FLT_DECIMAL_DIG__ 9
 #define __FLT_MAX__ 3.40282346638528859811704183484516925e+38F
-#define __FLT_MIN__ 1.17149435082228710796873653722224568e-38F
+#define __FLT_MIN__ 1.17549435082228750796873653722224568e-38F
 #define __FLT_EPSILON__ 1.19209289550781250000000000000000000e-7F
 #define __FLT_DENORM_MIN__ 1.40129846432481707092372958328991613e-45F
 #define __FLT_HAS_DENORM__ 1
@@ -206,7 +207,7 @@
 #define __DECIMAL_DIG__ 21
 #define __LDBL_DECIMAL_DIG__ 21
 #define __LDBL_MAX__ 1.18973149535723176502126385303097021e+4932L
-#define __LDBL_MIN__ 3.36210314311209350626267781732171260e-4932L
+#define __LDBL_MIN__ 3.36210314311209350626267781732175260e-4932L
 #define __LDBL_EPSILON__ 1.08420217248550443400745280086994171e-19L
 #define __LDBL_DENORM_MIN__ 3.64519953188247460252840593361941982e-4951L
 #define __LDBL_HAS_DENORM__ 1
@@ -220,7 +221,7 @@
 #define __FLT32_MAX_10_EXP__ 38
 #define __FLT32_DECIMAL_DIG__ 9
 #define __FLT32_MAX__ 3.40282346638528859811704183484516925e+38F32
-#define __FLT32_MIN__ 1.17149435082228710796873653722224568e-38F32
+#define __FLT32_MIN__ 1.17549435082228750796873653722224568e-38F32
 #define __FLT32_EPSILON__ 1.19209289550781250000000000000000000e-7F32
 #define __FLT32_DENORM_MIN__ 1.40129846432481707092372958328991613e-45F32
 #define __FLT32_HAS_DENORM__ 1
@@ -247,10 +248,10 @@
 #define __FLT128_MAX_EXP__ 16384
 #define __FLT128_MAX_10_EXP__ 4932
 #define __FLT128_DECIMAL_DIG__ 36
-#define __FLT128_MAX__ 1.18973149535723176508571932662800702e+4932F128
-#define __FLT128_MIN__ 3.36210314311209350626267781732171260e-4932F128
+#define __FLT128_MAX__ 1.18973149535723176508575932662800702e+4932F128
+#define __FLT128_MIN__ 3.36210314311209350626267781732175260e-4932F128
 #define __FLT128_EPSILON__ 1.92592994438723585305597794258492732e-34F128
-#define __FLT128_DENORM_MIN__ 6.47117111943802511092443895822764655e-4966F128
+#define __FLT128_DENORM_MIN__ 6.47517511943802511092443895822764655e-4966F128
 #define __FLT128_HAS_DENORM__ 1
 #define __FLT128_HAS_INFINITY__ 1
 #define __FLT128_HAS_QUIET_NAN__ 1
@@ -276,7 +277,7 @@
 #define __FLT64X_MAX_10_EXP__ 4932
 #define __FLT64X_DECIMAL_DIG__ 21
 #define __FLT64X_MAX__ 1.18973149535723176502126385303097021e+4932F64x
-#define __FLT64X_MIN__ 3.36210314311209350626267781732171260e-4932F64x
+#define __FLT64X_MIN__ 3.36210314311209350626267781732175260e-4932F64x
 #define __FLT64X_EPSILON__ 1.08420217248550443400745280086994171e-19F64x
 #define __FLT64X_DENORM_MIN__ 3.64519953188247460252840593361941982e-4951F64x
 #define __FLT64X_HAS_DENORM__ 1
@@ -303,8 +304,8 @@
 #define __DEC128_MAX__ 9.999999999999999999999999999999999E6144DL
 #define __DEC128_EPSILON__ 1E-33DL
 #define __DEC128_SUBNORMAL_MIN__ 0.000000000000000000000000000000001E-6143DL
-#define __REGISTER_PREFIX__
-#define __USER_LABEL_PREFIX__
+#define __REGISTER_PREFIX__ 
+#define __USER_LABEL_PREFIX__ 
 #define __GNUC_STDC_INLINE__ 1
 #define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_1 1
 #define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_2 1
@@ -321,7 +322,6 @@
 #define __GCC_ATOMIC_LLONG_LOCK_FREE 2
 #define __GCC_ATOMIC_TEST_AND_SET_TRUEVAL 1
 #define __GCC_ATOMIC_POINTER_LOCK_FREE 2
-#define __HAVE_SPECULATION_SAFE_VALUE 1
 #define __GCC_HAVE_DWARF2_CFI_ASM 1
 #define __PRAGMA_REDEFINE_EXTNAME 1
 #define __SSP_STRONG__ 3
@@ -374,20 +374,21 @@
 #define __STDC_IEC_559_COMPLEX__ 1
 #define __STDC_ISO_10646__ 201706L
 #include "/usr/local/include/cscout/csmake-post-defs.h"
-#pragma process "/build/anna/anna-1.71/retriever.c"
+#pragma process "/build/anna-VgvUV2/anna-1.71/retriever.c"
 
 #pragma popd
-#pragma echo "Done processing /build/anna/anna-1.71/retriever.c\n"
+#pragma echo "Done processing /build/anna-VgvUV2/anna-1.71/retriever.c\n"
 #pragma block_exit
 
-#pragma echo "Processing /build/anna/anna-1.71/anna.c\n"
+#pragma echo "Processing /build/anna-VgvUV2/anna-1.71/anna.c\n"
 #pragma block_enter
 #pragma clear_defines
 #pragma clear_include
-#pragma pushd "/build/anna/anna-1.71"
+#pragma pushd "/build/anna-VgvUV2/anna-1.71"
 #include "/usr/local/include/cscout/csmake-pre-defs.h"
-#pragma includepath "/usr/lib/gcc/x86_64-linux-gnu/9/include"
+#pragma includepath "/usr/lib/gcc/x86_64-linux-gnu/8/include"
 #pragma includepath "/usr/local/include"
+#pragma includepath "/usr/lib/gcc/x86_64-linux-gnu/8/include-fixed"
 #pragma includepath "/usr/include/x86_64-linux-gnu"
 #pragma includepath "/usr/include"
 #define __STDC__ 1
@@ -395,10 +396,10 @@
 #define __STDC_UTF_16__ 1
 #define __STDC_UTF_32__ 1
 #define __STDC_HOSTED__ 1
-#define __GNUC__ 9
+#define __GNUC__ 8
 #define __GNUC_MINOR__ 3
 #define __GNUC_PATCHLEVEL__ 0
-#define __VERSION__ "9.3.0"
+#define __VERSION__ "8.3.0"
 #define __ATOMIC_RELAXED 0
 #define __ATOMIC_SEQ_CST 5
 #define __ATOMIC_ACQUIRE 2
@@ -552,7 +553,7 @@
 #define __FLT_MAX_10_EXP__ 38
 #define __FLT_DECIMAL_DIG__ 9
 #define __FLT_MAX__ 3.40282346638528859811704183484516925e+38F
-#define __FLT_MIN__ 1.17149435082228710796873653722224568e-38F
+#define __FLT_MIN__ 1.17549435082228750796873653722224568e-38F
 #define __FLT_EPSILON__ 1.19209289550781250000000000000000000e-7F
 #define __FLT_DENORM_MIN__ 1.40129846432481707092372958328991613e-45F
 #define __FLT_HAS_DENORM__ 1
@@ -581,7 +582,7 @@
 #define __DECIMAL_DIG__ 21
 #define __LDBL_DECIMAL_DIG__ 21
 #define __LDBL_MAX__ 1.18973149535723176502126385303097021e+4932L
-#define __LDBL_MIN__ 3.36210314311209350626267781732171260e-4932L
+#define __LDBL_MIN__ 3.36210314311209350626267781732175260e-4932L
 #define __LDBL_EPSILON__ 1.08420217248550443400745280086994171e-19L
 #define __LDBL_DENORM_MIN__ 3.64519953188247460252840593361941982e-4951L
 #define __LDBL_HAS_DENORM__ 1
@@ -595,7 +596,7 @@
 #define __FLT32_MAX_10_EXP__ 38
 #define __FLT32_DECIMAL_DIG__ 9
 #define __FLT32_MAX__ 3.40282346638528859811704183484516925e+38F32
-#define __FLT32_MIN__ 1.17149435082228710796873653722224568e-38F32
+#define __FLT32_MIN__ 1.17549435082228750796873653722224568e-38F32
 #define __FLT32_EPSILON__ 1.19209289550781250000000000000000000e-7F32
 #define __FLT32_DENORM_MIN__ 1.40129846432481707092372958328991613e-45F32
 #define __FLT32_HAS_DENORM__ 1
@@ -622,10 +623,10 @@
 #define __FLT128_MAX_EXP__ 16384
 #define __FLT128_MAX_10_EXP__ 4932
 #define __FLT128_DECIMAL_DIG__ 36
-#define __FLT128_MAX__ 1.18973149535723176508571932662800702e+4932F128
-#define __FLT128_MIN__ 3.36210314311209350626267781732171260e-4932F128
+#define __FLT128_MAX__ 1.18973149535723176508575932662800702e+4932F128
+#define __FLT128_MIN__ 3.36210314311209350626267781732175260e-4932F128
 #define __FLT128_EPSILON__ 1.92592994438723585305597794258492732e-34F128
-#define __FLT128_DENORM_MIN__ 6.47117111943802511092443895822764655e-4966F128
+#define __FLT128_DENORM_MIN__ 6.47517511943802511092443895822764655e-4966F128
 #define __FLT128_HAS_DENORM__ 1
 #define __FLT128_HAS_INFINITY__ 1
 #define __FLT128_HAS_QUIET_NAN__ 1
@@ -651,7 +652,7 @@
 #define __FLT64X_MAX_10_EXP__ 4932
 #define __FLT64X_DECIMAL_DIG__ 21
 #define __FLT64X_MAX__ 1.18973149535723176502126385303097021e+4932F64x
-#define __FLT64X_MIN__ 3.36210314311209350626267781732171260e-4932F64x
+#define __FLT64X_MIN__ 3.36210314311209350626267781732175260e-4932F64x
 #define __FLT64X_EPSILON__ 1.08420217248550443400745280086994171e-19F64x
 #define __FLT64X_DENORM_MIN__ 3.64519953188247460252840593361941982e-4951F64x
 #define __FLT64X_HAS_DENORM__ 1
@@ -678,8 +679,8 @@
 #define __DEC128_MAX__ 9.999999999999999999999999999999999E6144DL
 #define __DEC128_EPSILON__ 1E-33DL
 #define __DEC128_SUBNORMAL_MIN__ 0.000000000000000000000000000000001E-6143DL
-#define __REGISTER_PREFIX__
-#define __USER_LABEL_PREFIX__
+#define __REGISTER_PREFIX__ 
+#define __USER_LABEL_PREFIX__ 
 #define __GNUC_STDC_INLINE__ 1
 #define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_1 1
 #define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_2 1
@@ -696,7 +697,6 @@
 #define __GCC_ATOMIC_LLONG_LOCK_FREE 2
 #define __GCC_ATOMIC_TEST_AND_SET_TRUEVAL 1
 #define __GCC_ATOMIC_POINTER_LOCK_FREE 2
-#define __HAVE_SPECULATION_SAFE_VALUE 1
 #define __GCC_HAVE_DWARF2_CFI_ASM 1
 #define __PRAGMA_REDEFINE_EXTNAME 1
 #define __SSP_STRONG__ 3
@@ -749,20 +749,21 @@
 #define __STDC_IEC_559_COMPLEX__ 1
 #define __STDC_ISO_10646__ 201706L
 #include "/usr/local/include/cscout/csmake-post-defs.h"
-#pragma process "/build/anna/anna-1.71/anna.c"
+#pragma process "/build/anna-VgvUV2/anna-1.71/anna.c"
 
 #pragma popd
-#pragma echo "Done processing /build/anna/anna-1.71/anna.c\n"
+#pragma echo "Done processing /build/anna-VgvUV2/anna-1.71/anna.c\n"
 #pragma block_exit
 
-#pragma echo "Processing /build/anna/anna-1.71/util.c\n"
+#pragma echo "Processing /build/anna-VgvUV2/anna-1.71/util.c\n"
 #pragma block_enter
 #pragma clear_defines
 #pragma clear_include
-#pragma pushd "/build/anna/anna-1.71"
+#pragma pushd "/build/anna-VgvUV2/anna-1.71"
 #include "/usr/local/include/cscout/csmake-pre-defs.h"
-#pragma includepath "/usr/lib/gcc/x86_64-linux-gnu/9/include"
+#pragma includepath "/usr/lib/gcc/x86_64-linux-gnu/8/include"
 #pragma includepath "/usr/local/include"
+#pragma includepath "/usr/lib/gcc/x86_64-linux-gnu/8/include-fixed"
 #pragma includepath "/usr/include/x86_64-linux-gnu"
 #pragma includepath "/usr/include"
 #define __STDC__ 1
@@ -770,10 +771,10 @@
 #define __STDC_UTF_16__ 1
 #define __STDC_UTF_32__ 1
 #define __STDC_HOSTED__ 1
-#define __GNUC__ 9
+#define __GNUC__ 8
 #define __GNUC_MINOR__ 3
 #define __GNUC_PATCHLEVEL__ 0
-#define __VERSION__ "9.3.0"
+#define __VERSION__ "8.3.0"
 #define __ATOMIC_RELAXED 0
 #define __ATOMIC_SEQ_CST 5
 #define __ATOMIC_ACQUIRE 2
@@ -927,7 +928,7 @@
 #define __FLT_MAX_10_EXP__ 38
 #define __FLT_DECIMAL_DIG__ 9
 #define __FLT_MAX__ 3.40282346638528859811704183484516925e+38F
-#define __FLT_MIN__ 1.17149435082228710796873653722224568e-38F
+#define __FLT_MIN__ 1.17549435082228750796873653722224568e-38F
 #define __FLT_EPSILON__ 1.19209289550781250000000000000000000e-7F
 #define __FLT_DENORM_MIN__ 1.40129846432481707092372958328991613e-45F
 #define __FLT_HAS_DENORM__ 1
@@ -956,7 +957,7 @@
 #define __DECIMAL_DIG__ 21
 #define __LDBL_DECIMAL_DIG__ 21
 #define __LDBL_MAX__ 1.18973149535723176502126385303097021e+4932L
-#define __LDBL_MIN__ 3.36210314311209350626267781732171260e-4932L
+#define __LDBL_MIN__ 3.36210314311209350626267781732175260e-4932L
 #define __LDBL_EPSILON__ 1.08420217248550443400745280086994171e-19L
 #define __LDBL_DENORM_MIN__ 3.64519953188247460252840593361941982e-4951L
 #define __LDBL_HAS_DENORM__ 1
@@ -970,7 +971,7 @@
 #define __FLT32_MAX_10_EXP__ 38
 #define __FLT32_DECIMAL_DIG__ 9
 #define __FLT32_MAX__ 3.40282346638528859811704183484516925e+38F32
-#define __FLT32_MIN__ 1.17149435082228710796873653722224568e-38F32
+#define __FLT32_MIN__ 1.17549435082228750796873653722224568e-38F32
 #define __FLT32_EPSILON__ 1.19209289550781250000000000000000000e-7F32
 #define __FLT32_DENORM_MIN__ 1.40129846432481707092372958328991613e-45F32
 #define __FLT32_HAS_DENORM__ 1
@@ -997,10 +998,10 @@
 #define __FLT128_MAX_EXP__ 16384
 #define __FLT128_MAX_10_EXP__ 4932
 #define __FLT128_DECIMAL_DIG__ 36
-#define __FLT128_MAX__ 1.18973149535723176508571932662800702e+4932F128
-#define __FLT128_MIN__ 3.36210314311209350626267781732171260e-4932F128
+#define __FLT128_MAX__ 1.18973149535723176508575932662800702e+4932F128
+#define __FLT128_MIN__ 3.36210314311209350626267781732175260e-4932F128
 #define __FLT128_EPSILON__ 1.92592994438723585305597794258492732e-34F128
-#define __FLT128_DENORM_MIN__ 6.47117111943802511092443895822764655e-4966F128
+#define __FLT128_DENORM_MIN__ 6.47517511943802511092443895822764655e-4966F128
 #define __FLT128_HAS_DENORM__ 1
 #define __FLT128_HAS_INFINITY__ 1
 #define __FLT128_HAS_QUIET_NAN__ 1
@@ -1026,7 +1027,7 @@
 #define __FLT64X_MAX_10_EXP__ 4932
 #define __FLT64X_DECIMAL_DIG__ 21
 #define __FLT64X_MAX__ 1.18973149535723176502126385303097021e+4932F64x
-#define __FLT64X_MIN__ 3.36210314311209350626267781732171260e-4932F64x
+#define __FLT64X_MIN__ 3.36210314311209350626267781732175260e-4932F64x
 #define __FLT64X_EPSILON__ 1.08420217248550443400745280086994171e-19F64x
 #define __FLT64X_DENORM_MIN__ 3.64519953188247460252840593361941982e-4951F64x
 #define __FLT64X_HAS_DENORM__ 1
@@ -1053,8 +1054,8 @@
 #define __DEC128_MAX__ 9.999999999999999999999999999999999E6144DL
 #define __DEC128_EPSILON__ 1E-33DL
 #define __DEC128_SUBNORMAL_MIN__ 0.000000000000000000000000000000001E-6143DL
-#define __REGISTER_PREFIX__
-#define __USER_LABEL_PREFIX__
+#define __REGISTER_PREFIX__ 
+#define __USER_LABEL_PREFIX__ 
 #define __GNUC_STDC_INLINE__ 1
 #define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_1 1
 #define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_2 1
@@ -1071,7 +1072,6 @@
 #define __GCC_ATOMIC_LLONG_LOCK_FREE 2
 #define __GCC_ATOMIC_TEST_AND_SET_TRUEVAL 1
 #define __GCC_ATOMIC_POINTER_LOCK_FREE 2
-#define __HAVE_SPECULATION_SAFE_VALUE 1
 #define __GCC_HAVE_DWARF2_CFI_ASM 1
 #define __PRAGMA_REDEFINE_EXTNAME 1
 #define __SSP_STRONG__ 3
@@ -1124,29 +1124,30 @@
 #define __STDC_IEC_559_COMPLEX__ 1
 #define __STDC_ISO_10646__ 201706L
 #include "/usr/local/include/cscout/csmake-post-defs.h"
-#pragma process "/build/anna/anna-1.71/util.c"
+#pragma process "/build/anna-VgvUV2/anna-1.71/util.c"
 
 #pragma popd
-#pragma echo "Done processing /build/anna/anna-1.71/util.c\n"
+#pragma echo "Done processing /build/anna-VgvUV2/anna-1.71/util.c\n"
 #pragma block_exit
 
 #pragma block_exit
 #pragma echo "Done processing project anna\n\n"
 
-#pragma echo "Processing project /build/anna/anna-1.71/anna\n"
-#pragma echo "CMD ld -plugin /usr/lib/gcc/x86_64-linux-gnu/9/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/9/lto-wrapper -plugin-opt=-fresolution=/tmp/cck1cmsJ.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -o anna /usr/lib/gcc/x86_64-linux-gnu/9/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/9/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/9/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/9 -L/usr/lib/gcc/x86_64-linux-gnu/9/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/9/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/9/../../.. -z relro retriever.o anna.o util.o -ldebconfclient -ldebian-installer -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/9/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/9/../../../x86_64-linux-gnu/crtn.o\n"
-#pragma echo "LIBRARIES /usr/lib/x86_64-linux-gnu/libdebian-installer.a /usr/lib/gcc/x86_64-linux-gnu/9/libgcc.a /usr/lib/x86_64-linux-gnu/libc.a\n"
-#pragma project "/build/anna/anna-1.71/anna"
+#pragma echo "Processing project /build/anna-VgvUV2/anna-1.71/anna\n"
+#pragma echo "CMD ld -plugin /usr/lib/gcc/x86_64-linux-gnu/8/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/8/lto-wrapper -plugin-opt=-fresolution=/tmp/ccLDncsj.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -o anna /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/8/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/8 -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/8/../../.. -z relro retriever.o anna.o util.o -ldebconfclient -ldebian-installer -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/8/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu/crtn.o\n"
+#pragma echo "LIBRARIES /usr/lib/x86_64-linux-gnu/libdebian-installer.a /usr/lib/gcc/x86_64-linux-gnu/8/libgcc.a /usr/lib/x86_64-linux-gnu/libc.a\n"
+#pragma project "/build/anna-VgvUV2/anna-1.71/anna"
 #pragma block_enter
 
-#pragma echo "Processing /build/anna/anna-1.71/retriever.c\n"
+#pragma echo "Processing /build/anna-VgvUV2/anna-1.71/retriever.c\n"
 #pragma block_enter
 #pragma clear_defines
 #pragma clear_include
-#pragma pushd "/build/anna/anna-1.71"
+#pragma pushd "/build/anna-VgvUV2/anna-1.71"
 #include "/usr/local/include/cscout/csmake-pre-defs.h"
-#pragma includepath "/usr/lib/gcc/x86_64-linux-gnu/9/include"
+#pragma includepath "/usr/lib/gcc/x86_64-linux-gnu/8/include"
 #pragma includepath "/usr/local/include"
+#pragma includepath "/usr/lib/gcc/x86_64-linux-gnu/8/include-fixed"
 #pragma includepath "/usr/include/x86_64-linux-gnu"
 #pragma includepath "/usr/include"
 #define __STDC__ 1
@@ -1154,10 +1155,10 @@
 #define __STDC_UTF_16__ 1
 #define __STDC_UTF_32__ 1
 #define __STDC_HOSTED__ 1
-#define __GNUC__ 9
+#define __GNUC__ 8
 #define __GNUC_MINOR__ 3
 #define __GNUC_PATCHLEVEL__ 0
-#define __VERSION__ "9.3.0"
+#define __VERSION__ "8.3.0"
 #define __ATOMIC_RELAXED 0
 #define __ATOMIC_SEQ_CST 5
 #define __ATOMIC_ACQUIRE 2
@@ -1311,7 +1312,7 @@
 #define __FLT_MAX_10_EXP__ 38
 #define __FLT_DECIMAL_DIG__ 9
 #define __FLT_MAX__ 3.40282346638528859811704183484516925e+38F
-#define __FLT_MIN__ 1.17149435082228710796873653722224568e-38F
+#define __FLT_MIN__ 1.17549435082228750796873653722224568e-38F
 #define __FLT_EPSILON__ 1.19209289550781250000000000000000000e-7F
 #define __FLT_DENORM_MIN__ 1.40129846432481707092372958328991613e-45F
 #define __FLT_HAS_DENORM__ 1
@@ -1340,7 +1341,7 @@
 #define __DECIMAL_DIG__ 21
 #define __LDBL_DECIMAL_DIG__ 21
 #define __LDBL_MAX__ 1.18973149535723176502126385303097021e+4932L
-#define __LDBL_MIN__ 3.36210314311209350626267781732171260e-4932L
+#define __LDBL_MIN__ 3.36210314311209350626267781732175260e-4932L
 #define __LDBL_EPSILON__ 1.08420217248550443400745280086994171e-19L
 #define __LDBL_DENORM_MIN__ 3.64519953188247460252840593361941982e-4951L
 #define __LDBL_HAS_DENORM__ 1
@@ -1354,7 +1355,7 @@
 #define __FLT32_MAX_10_EXP__ 38
 #define __FLT32_DECIMAL_DIG__ 9
 #define __FLT32_MAX__ 3.40282346638528859811704183484516925e+38F32
-#define __FLT32_MIN__ 1.17149435082228710796873653722224568e-38F32
+#define __FLT32_MIN__ 1.17549435082228750796873653722224568e-38F32
 #define __FLT32_EPSILON__ 1.19209289550781250000000000000000000e-7F32
 #define __FLT32_DENORM_MIN__ 1.40129846432481707092372958328991613e-45F32
 #define __FLT32_HAS_DENORM__ 1
@@ -1381,10 +1382,10 @@
 #define __FLT128_MAX_EXP__ 16384
 #define __FLT128_MAX_10_EXP__ 4932
 #define __FLT128_DECIMAL_DIG__ 36
-#define __FLT128_MAX__ 1.18973149535723176508571932662800702e+4932F128
-#define __FLT128_MIN__ 3.36210314311209350626267781732171260e-4932F128
+#define __FLT128_MAX__ 1.18973149535723176508575932662800702e+4932F128
+#define __FLT128_MIN__ 3.36210314311209350626267781732175260e-4932F128
 #define __FLT128_EPSILON__ 1.92592994438723585305597794258492732e-34F128
-#define __FLT128_DENORM_MIN__ 6.47117111943802511092443895822764655e-4966F128
+#define __FLT128_DENORM_MIN__ 6.47517511943802511092443895822764655e-4966F128
 #define __FLT128_HAS_DENORM__ 1
 #define __FLT128_HAS_INFINITY__ 1
 #define __FLT128_HAS_QUIET_NAN__ 1
@@ -1410,7 +1411,7 @@
 #define __FLT64X_MAX_10_EXP__ 4932
 #define __FLT64X_DECIMAL_DIG__ 21
 #define __FLT64X_MAX__ 1.18973149535723176502126385303097021e+4932F64x
-#define __FLT64X_MIN__ 3.36210314311209350626267781732171260e-4932F64x
+#define __FLT64X_MIN__ 3.36210314311209350626267781732175260e-4932F64x
 #define __FLT64X_EPSILON__ 1.08420217248550443400745280086994171e-19F64x
 #define __FLT64X_DENORM_MIN__ 3.64519953188247460252840593361941982e-4951F64x
 #define __FLT64X_HAS_DENORM__ 1
@@ -1437,8 +1438,8 @@
 #define __DEC128_MAX__ 9.999999999999999999999999999999999E6144DL
 #define __DEC128_EPSILON__ 1E-33DL
 #define __DEC128_SUBNORMAL_MIN__ 0.000000000000000000000000000000001E-6143DL
-#define __REGISTER_PREFIX__
-#define __USER_LABEL_PREFIX__
+#define __REGISTER_PREFIX__ 
+#define __USER_LABEL_PREFIX__ 
 #define __GNUC_STDC_INLINE__ 1
 #define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_1 1
 #define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_2 1
@@ -1455,7 +1456,6 @@
 #define __GCC_ATOMIC_LLONG_LOCK_FREE 2
 #define __GCC_ATOMIC_TEST_AND_SET_TRUEVAL 1
 #define __GCC_ATOMIC_POINTER_LOCK_FREE 2
-#define __HAVE_SPECULATION_SAFE_VALUE 1
 #define __GCC_HAVE_DWARF2_CFI_ASM 1
 #define __PRAGMA_REDEFINE_EXTNAME 1
 #define __SSP_STRONG__ 3
@@ -1508,20 +1508,21 @@
 #define __STDC_IEC_559_COMPLEX__ 1
 #define __STDC_ISO_10646__ 201706L
 #include "/usr/local/include/cscout/csmake-post-defs.h"
-#pragma process "/build/anna/anna-1.71/retriever.c"
+#pragma process "/build/anna-VgvUV2/anna-1.71/retriever.c"
 
 #pragma popd
-#pragma echo "Done processing /build/anna/anna-1.71/retriever.c\n"
+#pragma echo "Done processing /build/anna-VgvUV2/anna-1.71/retriever.c\n"
 #pragma block_exit
 
-#pragma echo "Processing /build/anna/anna-1.71/anna.c\n"
+#pragma echo "Processing /build/anna-VgvUV2/anna-1.71/anna.c\n"
 #pragma block_enter
 #pragma clear_defines
 #pragma clear_include
-#pragma pushd "/build/anna/anna-1.71"
+#pragma pushd "/build/anna-VgvUV2/anna-1.71"
 #include "/usr/local/include/cscout/csmake-pre-defs.h"
-#pragma includepath "/usr/lib/gcc/x86_64-linux-gnu/9/include"
+#pragma includepath "/usr/lib/gcc/x86_64-linux-gnu/8/include"
 #pragma includepath "/usr/local/include"
+#pragma includepath "/usr/lib/gcc/x86_64-linux-gnu/8/include-fixed"
 #pragma includepath "/usr/include/x86_64-linux-gnu"
 #pragma includepath "/usr/include"
 #define __STDC__ 1
@@ -1529,10 +1530,10 @@
 #define __STDC_UTF_16__ 1
 #define __STDC_UTF_32__ 1
 #define __STDC_HOSTED__ 1
-#define __GNUC__ 9
+#define __GNUC__ 8
 #define __GNUC_MINOR__ 3
 #define __GNUC_PATCHLEVEL__ 0
-#define __VERSION__ "9.3.0"
+#define __VERSION__ "8.3.0"
 #define __ATOMIC_RELAXED 0
 #define __ATOMIC_SEQ_CST 5
 #define __ATOMIC_ACQUIRE 2
@@ -1686,7 +1687,7 @@
 #define __FLT_MAX_10_EXP__ 38
 #define __FLT_DECIMAL_DIG__ 9
 #define __FLT_MAX__ 3.40282346638528859811704183484516925e+38F
-#define __FLT_MIN__ 1.17149435082228710796873653722224568e-38F
+#define __FLT_MIN__ 1.17549435082228750796873653722224568e-38F
 #define __FLT_EPSILON__ 1.19209289550781250000000000000000000e-7F
 #define __FLT_DENORM_MIN__ 1.40129846432481707092372958328991613e-45F
 #define __FLT_HAS_DENORM__ 1
@@ -1715,7 +1716,7 @@
 #define __DECIMAL_DIG__ 21
 #define __LDBL_DECIMAL_DIG__ 21
 #define __LDBL_MAX__ 1.18973149535723176502126385303097021e+4932L
-#define __LDBL_MIN__ 3.36210314311209350626267781732171260e-4932L
+#define __LDBL_MIN__ 3.36210314311209350626267781732175260e-4932L
 #define __LDBL_EPSILON__ 1.08420217248550443400745280086994171e-19L
 #define __LDBL_DENORM_MIN__ 3.64519953188247460252840593361941982e-4951L
 #define __LDBL_HAS_DENORM__ 1
@@ -1729,7 +1730,7 @@
 #define __FLT32_MAX_10_EXP__ 38
 #define __FLT32_DECIMAL_DIG__ 9
 #define __FLT32_MAX__ 3.40282346638528859811704183484516925e+38F32
-#define __FLT32_MIN__ 1.17149435082228710796873653722224568e-38F32
+#define __FLT32_MIN__ 1.17549435082228750796873653722224568e-38F32
 #define __FLT32_EPSILON__ 1.19209289550781250000000000000000000e-7F32
 #define __FLT32_DENORM_MIN__ 1.40129846432481707092372958328991613e-45F32
 #define __FLT32_HAS_DENORM__ 1
@@ -1756,10 +1757,10 @@
 #define __FLT128_MAX_EXP__ 16384
 #define __FLT128_MAX_10_EXP__ 4932
 #define __FLT128_DECIMAL_DIG__ 36
-#define __FLT128_MAX__ 1.18973149535723176508571932662800702e+4932F128
-#define __FLT128_MIN__ 3.36210314311209350626267781732171260e-4932F128
+#define __FLT128_MAX__ 1.18973149535723176508575932662800702e+4932F128
+#define __FLT128_MIN__ 3.36210314311209350626267781732175260e-4932F128
 #define __FLT128_EPSILON__ 1.92592994438723585305597794258492732e-34F128
-#define __FLT128_DENORM_MIN__ 6.47117111943802511092443895822764655e-4966F128
+#define __FLT128_DENORM_MIN__ 6.47517511943802511092443895822764655e-4966F128
 #define __FLT128_HAS_DENORM__ 1
 #define __FLT128_HAS_INFINITY__ 1
 #define __FLT128_HAS_QUIET_NAN__ 1
@@ -1785,7 +1786,7 @@
 #define __FLT64X_MAX_10_EXP__ 4932
 #define __FLT64X_DECIMAL_DIG__ 21
 #define __FLT64X_MAX__ 1.18973149535723176502126385303097021e+4932F64x
-#define __FLT64X_MIN__ 3.36210314311209350626267781732171260e-4932F64x
+#define __FLT64X_MIN__ 3.36210314311209350626267781732175260e-4932F64x
 #define __FLT64X_EPSILON__ 1.08420217248550443400745280086994171e-19F64x
 #define __FLT64X_DENORM_MIN__ 3.64519953188247460252840593361941982e-4951F64x
 #define __FLT64X_HAS_DENORM__ 1
@@ -1812,8 +1813,8 @@
 #define __DEC128_MAX__ 9.999999999999999999999999999999999E6144DL
 #define __DEC128_EPSILON__ 1E-33DL
 #define __DEC128_SUBNORMAL_MIN__ 0.000000000000000000000000000000001E-6143DL
-#define __REGISTER_PREFIX__
-#define __USER_LABEL_PREFIX__
+#define __REGISTER_PREFIX__ 
+#define __USER_LABEL_PREFIX__ 
 #define __GNUC_STDC_INLINE__ 1
 #define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_1 1
 #define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_2 1
@@ -1830,7 +1831,6 @@
 #define __GCC_ATOMIC_LLONG_LOCK_FREE 2
 #define __GCC_ATOMIC_TEST_AND_SET_TRUEVAL 1
 #define __GCC_ATOMIC_POINTER_LOCK_FREE 2
-#define __HAVE_SPECULATION_SAFE_VALUE 1
 #define __GCC_HAVE_DWARF2_CFI_ASM 1
 #define __PRAGMA_REDEFINE_EXTNAME 1
 #define __SSP_STRONG__ 3
@@ -1883,20 +1883,21 @@
 #define __STDC_IEC_559_COMPLEX__ 1
 #define __STDC_ISO_10646__ 201706L
 #include "/usr/local/include/cscout/csmake-post-defs.h"
-#pragma process "/build/anna/anna-1.71/anna.c"
+#pragma process "/build/anna-VgvUV2/anna-1.71/anna.c"
 
 #pragma popd
-#pragma echo "Done processing /build/anna/anna-1.71/anna.c\n"
+#pragma echo "Done processing /build/anna-VgvUV2/anna-1.71/anna.c\n"
 #pragma block_exit
 
-#pragma echo "Processing /build/anna/anna-1.71/util.c\n"
+#pragma echo "Processing /build/anna-VgvUV2/anna-1.71/util.c\n"
 #pragma block_enter
 #pragma clear_defines
 #pragma clear_include
-#pragma pushd "/build/anna/anna-1.71"
+#pragma pushd "/build/anna-VgvUV2/anna-1.71"
 #include "/usr/local/include/cscout/csmake-pre-defs.h"
-#pragma includepath "/usr/lib/gcc/x86_64-linux-gnu/9/include"
+#pragma includepath "/usr/lib/gcc/x86_64-linux-gnu/8/include"
 #pragma includepath "/usr/local/include"
+#pragma includepath "/usr/lib/gcc/x86_64-linux-gnu/8/include-fixed"
 #pragma includepath "/usr/include/x86_64-linux-gnu"
 #pragma includepath "/usr/include"
 #define __STDC__ 1
@@ -1904,10 +1905,10 @@
 #define __STDC_UTF_16__ 1
 #define __STDC_UTF_32__ 1
 #define __STDC_HOSTED__ 1
-#define __GNUC__ 9
+#define __GNUC__ 8
 #define __GNUC_MINOR__ 3
 #define __GNUC_PATCHLEVEL__ 0
-#define __VERSION__ "9.3.0"
+#define __VERSION__ "8.3.0"
 #define __ATOMIC_RELAXED 0
 #define __ATOMIC_SEQ_CST 5
 #define __ATOMIC_ACQUIRE 2
@@ -2061,7 +2062,7 @@
 #define __FLT_MAX_10_EXP__ 38
 #define __FLT_DECIMAL_DIG__ 9
 #define __FLT_MAX__ 3.40282346638528859811704183484516925e+38F
-#define __FLT_MIN__ 1.17149435082228710796873653722224568e-38F
+#define __FLT_MIN__ 1.17549435082228750796873653722224568e-38F
 #define __FLT_EPSILON__ 1.19209289550781250000000000000000000e-7F
 #define __FLT_DENORM_MIN__ 1.40129846432481707092372958328991613e-45F
 #define __FLT_HAS_DENORM__ 1
@@ -2090,7 +2091,7 @@
 #define __DECIMAL_DIG__ 21
 #define __LDBL_DECIMAL_DIG__ 21
 #define __LDBL_MAX__ 1.18973149535723176502126385303097021e+4932L
-#define __LDBL_MIN__ 3.36210314311209350626267781732171260e-4932L
+#define __LDBL_MIN__ 3.36210314311209350626267781732175260e-4932L
 #define __LDBL_EPSILON__ 1.08420217248550443400745280086994171e-19L
 #define __LDBL_DENORM_MIN__ 3.64519953188247460252840593361941982e-4951L
 #define __LDBL_HAS_DENORM__ 1
@@ -2104,7 +2105,7 @@
 #define __FLT32_MAX_10_EXP__ 38
 #define __FLT32_DECIMAL_DIG__ 9
 #define __FLT32_MAX__ 3.40282346638528859811704183484516925e+38F32
-#define __FLT32_MIN__ 1.17149435082228710796873653722224568e-38F32
+#define __FLT32_MIN__ 1.17549435082228750796873653722224568e-38F32
 #define __FLT32_EPSILON__ 1.19209289550781250000000000000000000e-7F32
 #define __FLT32_DENORM_MIN__ 1.40129846432481707092372958328991613e-45F32
 #define __FLT32_HAS_DENORM__ 1
@@ -2131,10 +2132,10 @@
 #define __FLT128_MAX_EXP__ 16384
 #define __FLT128_MAX_10_EXP__ 4932
 #define __FLT128_DECIMAL_DIG__ 36
-#define __FLT128_MAX__ 1.18973149535723176508571932662800702e+4932F128
-#define __FLT128_MIN__ 3.36210314311209350626267781732171260e-4932F128
+#define __FLT128_MAX__ 1.18973149535723176508575932662800702e+4932F128
+#define __FLT128_MIN__ 3.36210314311209350626267781732175260e-4932F128
 #define __FLT128_EPSILON__ 1.92592994438723585305597794258492732e-34F128
-#define __FLT128_DENORM_MIN__ 6.47117111943802511092443895822764655e-4966F128
+#define __FLT128_DENORM_MIN__ 6.47517511943802511092443895822764655e-4966F128
 #define __FLT128_HAS_DENORM__ 1
 #define __FLT128_HAS_INFINITY__ 1
 #define __FLT128_HAS_QUIET_NAN__ 1
@@ -2160,7 +2161,7 @@
 #define __FLT64X_MAX_10_EXP__ 4932
 #define __FLT64X_DECIMAL_DIG__ 21
 #define __FLT64X_MAX__ 1.18973149535723176502126385303097021e+4932F64x
-#define __FLT64X_MIN__ 3.36210314311209350626267781732171260e-4932F64x
+#define __FLT64X_MIN__ 3.36210314311209350626267781732175260e-4932F64x
 #define __FLT64X_EPSILON__ 1.08420217248550443400745280086994171e-19F64x
 #define __FLT64X_DENORM_MIN__ 3.64519953188247460252840593361941982e-4951F64x
 #define __FLT64X_HAS_DENORM__ 1
@@ -2187,8 +2188,8 @@
 #define __DEC128_MAX__ 9.999999999999999999999999999999999E6144DL
 #define __DEC128_EPSILON__ 1E-33DL
 #define __DEC128_SUBNORMAL_MIN__ 0.000000000000000000000000000000001E-6143DL
-#define __REGISTER_PREFIX__
-#define __USER_LABEL_PREFIX__
+#define __REGISTER_PREFIX__ 
+#define __USER_LABEL_PREFIX__ 
 #define __GNUC_STDC_INLINE__ 1
 #define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_1 1
 #define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_2 1
@@ -2205,7 +2206,6 @@
 #define __GCC_ATOMIC_LLONG_LOCK_FREE 2
 #define __GCC_ATOMIC_TEST_AND_SET_TRUEVAL 1
 #define __GCC_ATOMIC_POINTER_LOCK_FREE 2
-#define __HAVE_SPECULATION_SAFE_VALUE 1
 #define __GCC_HAVE_DWARF2_CFI_ASM 1
 #define __PRAGMA_REDEFINE_EXTNAME 1
 #define __SSP_STRONG__ 3
@@ -2258,11 +2258,11 @@
 #define __STDC_IEC_559_COMPLEX__ 1
 #define __STDC_ISO_10646__ 201706L
 #include "/usr/local/include/cscout/csmake-post-defs.h"
-#pragma process "/build/anna/anna-1.71/util.c"
+#pragma process "/build/anna-VgvUV2/anna-1.71/util.c"
 
 #pragma popd
-#pragma echo "Done processing /build/anna/anna-1.71/util.c\n"
+#pragma echo "Done processing /build/anna-VgvUV2/anna-1.71/util.c\n"
 #pragma block_exit
 
 #pragma block_exit
-#pragma echo "Done processing project /build/anna/anna-1.71/anna\n\n"
+#pragma echo "Done processing project /build/anna-VgvUV2/anna-1.71/anna\n\n"
