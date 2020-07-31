@@ -102,6 +102,54 @@ def extract_text(inp, sep=('(', ')')):
     return '', inp
 
 
+def parse_single_dependency(dep, forge, dep_type, virtuals={}, strip_udeb=False):
+    """Parse a single dependency
+    This function waits a single dependency and not a string with alternatives.
+
+    Args:
+        dep: A string that contains a dependency.
+        forge: debian, or github, etc.
+        dep_type: The dependency type.
+        virtuals: Map of virtual packages to the packages they produced them.
+            This is needed for Debian packages, to check if a dependency is
+            virtual.
+        strip_udeb: Boolean
+
+    Returns:
+        A dict mappings values to the corresponding fields.
+        A fasten dependency must contain forge-product, and may contain
+        constraints and architectures (if they don't exist, it returns empty
+        strings).
+
+    Examples:
+        1) input: "debhelper (>= 9)"
+           return:
+                {
+                 'product': 'debhelper',
+                 'forge': 'debian',
+                 'architectures': [],
+                 'constraints': '[9,)',
+                 'dependency_type': 'Depends',
+                 'is_virtual': False,
+                 'alternatives': []
+                }
+    """
+    dep = dep.strip()
+    name = ''
+    version = ''
+    arch = ''
+    version, dep = extract_text(dep)
+    arch, dep = extract_text(dep, ('[', ']'))
+    arch = list(filter(None, arch.split()))
+    _, dep = extract_text(dep, ('<', '>'))
+    name = dep.strip()
+    name = name[:-5] if name.endswith('-udeb') and strip_udeb else name
+    virtual = True if dep in virtuals else False
+    return {'product': name, 'forge': forge, 'architectures': arch,
+            'constraints': use_mvn_spec(version), 'dependency_type': dep_type,
+            'is_virtual': virtual, 'alternatives': []}
+
+
 def parse_dependency(dep, forge, dep_type, virtuals={}, strip_udeb=False):
     """Parse a dependency and return a dictionary in the FASTEN format.
 
@@ -140,11 +188,11 @@ def parse_dependency(dep, forge, dep_type, virtuals={}, strip_udeb=False):
         2) input: "libdebian-installer4-dev [amd64] | libdebconfclient-dev"
            return:
                 {
-                 'product': 'libdebconfclient-dev',
-                 'forge': 'debian',
+                 'product': 'libdebconfclient-dev-alternatives',
+                 'forge': '',
                  'architectures': [],
                  'constraints': '',
-                 'dependency_type': 'Depends',
+                 'dependency_type': 'Alternatives',
                  'is_virtual': False,
                  'alternatives': [
                     {
@@ -155,33 +203,29 @@ def parse_dependency(dep, forge, dep_type, virtuals={}, strip_udeb=False):
                      'dependency_type': 'Depends',
                      'is_virtual': False,
                      'alternatives': []
+                    },
+                    {
+                     'product': 'libdebconfclient-dev',
+                     'forge': 'debian',
+                     'architectures': [],
+                     'constraints': '',
+                     'dependency_type': 'Depends',
+                     'is_virtual': False,
+                     'alternatives': []
                     }
                  ]
                 }
     """
     if '|' in dep:
         dependencies = [
-            parse_dependency(alt, forge, dep_type, virtuals, strip_udeb)
+            parse_single_dependency(alt, forge, dep_type, virtuals, strip_udeb)
             for alt in dep.split('|')
         ]
-        main_dep = dependencies[0]
-        dependencies.remove(main_dep)
-        main_dep['alternatives'] = dependencies
-        return main_dep
-    dep = dep.strip()
-    name = ''
-    version = ''
-    arch = ''
-    version, dep = extract_text(dep)
-    arch, dep = extract_text(dep, ('[', ']'))
-    arch = list(filter(None, arch.split()))
-    _, dep = extract_text(dep, ('<', '>'))
-    name = dep.strip()
-    name = name[:-5] if name.endswith('-udeb') else name
-    virtual = True if dep in virtuals else False
-    return {'product': name, 'forge': forge, 'architectures': arch,
-            'constraints': use_mvn_spec(version), 'dependency_type': dep_type,
-            'is_virtual': virtual, 'alternatives': []}
+        alternative_name = dependencies[0]['product'] + "-alternatives"
+        return {'product': alternative_name, 'forge': '', 'architectures': [],
+                'constraints': '', 'dependency_type': 'Alternatives',
+                'is_virtual': False, 'alternatives': dependencies}
+    return parse_single_dependency(dep, forge, dep_type, virtuals, strip_udeb)
 
 
 def run_command(arguments, parse_stdout=True):
@@ -200,7 +244,7 @@ def run_command(arguments, parse_stdout=True):
         m = "Warning: run_command failed with arguments {} and error {}".format(
             ' '.join(map(str, arguments)), e
         )
-        print(m)
+        #  print(m)
         return '', -1
     if parse_stdout:
         stdout = stdout.decode("utf-8").split("\n")
@@ -844,6 +888,7 @@ class C_Canonicalizer:
             self.dependencies.extend(deps)
         # Update self.dependencies_lookup
         for dep in deps:
+            print(dep)
             self.dependencies_lookup[dep['product']] = dep['product']
             for alt in dep['alternatives']:
                 self.dependencies_lookup[alt['product']] = dep['product']
@@ -923,6 +968,9 @@ class C_Canonicalizer:
         if product != self.product:
             if binary.endswith('.so') or (binary == '' and not is_static):
                 product = ''
+            #  print(product)
+            if isinstance(product, bytes):
+                product = product.decode("utf-8")
             forge_product_version += '//' + product
         return '{}/{};{}/{}'.format(
             forge_product_version, binary, namespace, function

@@ -134,13 +134,22 @@ simple_product = {'architectures': [], 'constraints': "[9,)",
                   'dependency_type': "Depends", 'is_virtual': False,
                   'alternatives': []}
 complex_product = {
-        'architectures': ["amd64"],
+        'architectures': [],
         'constraints': "",
-        'forge': "debian",
-        'product': "libdebian-installer4-dev",
+        'forge': "",
+        'product': "libdebian-installer4-dev-alternatives",
         'is_virtual': False,
-        'dependency_type': "Depends",
+        'dependency_type': "Alternatives",
         'alternatives': [{
+            'architectures': ["amd64"],
+            'constraints': "",
+            'forge': "debian",
+            'product': "libdebian-installer4-dev",
+            'is_virtual': False,
+            'dependency_type': "Depends",
+            'alternatives': []
+         },
+         {
             'architectures': [],
             'constraints': "",
             'dependency_type': "Depends",
