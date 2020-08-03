@@ -244,7 +244,6 @@ def run_command(arguments, parse_stdout=True):
         m = "Warning: run_command failed with arguments {} and error {}".format(
             ' '.join(map(str, arguments)), e
         )
-        #  print(m)
         return '', -1
     if parse_stdout:
         stdout = stdout.decode("utf-8").split("\n")
@@ -585,11 +584,23 @@ class C_Canonicalizer:
             build_dependencies: Product's build dependencies.
             dependencies_lookup: A map from host packages to dependencies.
             can_graph: Canonicalized Call-Graph.
-            cha: A dictionary containing URIs of nodes' declarations
-                categorized based on binaries or static functions.
+            functions: A dictionary containing the detected functions.
+                We categorized functions in internal and external.
+                Internal key contains binaries and static_functions.
+                Binaries key contains a dictionary with the detected binaries.
+                The format for a function is the following:
+                "0": {
+                  "metadata": {
+                    "access": "public",
+                    "defined": true,
+                    "first": "109",
+                    "last": "116"
+                  }
+                  "uri": "C uri"
+                }
             current_binary: Current analyzed binary
             node_id_counter: A counter to set node ids
-            nodes: Nodes of analyzed product
+            nodes_lookup: URI -> node id
             environment_deps: Dependencies that are not declared in deb.
             virtuals: Map from virtual packages to list of packages that
                 implements them.
@@ -611,9 +622,15 @@ class C_Canonicalizer:
         self.version = None
         self.architecture = None
         self.timestamp = None
-        self.can_graph = {'externalCalls': [], 'internalCalls': []}
-        self.cha = {'binaries': {}, 'static_functions': {}}
+        self.can_graph = {
+            'externalCalls': [], 'internalCalls': [], 'resolvedCalls': []
+        }
+        self.functions = {
+            'internal': {'binaries': {}, 'static_functions': {'methods': {}}},
+            'external': {'products': {}, 'undefined': {'methods': {}}}
+        }
         self.analyzer = analyzer
+        self.nodes_lookup = {}
         self.node_id_counter = 0
 
         if not (os.path.exists(self.deb) and os.path.getsize(self.deb) > 0):
@@ -649,7 +666,7 @@ class C_Canonicalizer:
                 self.logger.warning('binary: %s has not a binary', binary)
                 continue
             can_binary = canonicalize_binary_name(binary_file)
-            self.cha['binaries'][can_binary] = {}
+            self.functions['internal']['binaries'][can_binary] = {'methods': {}}
             self.binaries[can_binary] = {
                 'binary': binary_file,
                 'cs': cs_file,
@@ -744,6 +761,53 @@ class C_Canonicalizer:
         for binary in self.binaries.keys():
             self._parse_graph(binary)
 
+    def _add_node_in_functions(self, node, binary=''):
+        can_node, path, scope, is_defined, lines = (
+            self._parse_node_declaration(node)
+        )
+        if path.endswith('.cs'):  # Skip cscout files
+            return
+
+        # Static function
+        if ';' in can_node.split('/')[-1]:
+            if (can_node.startswith('//') and
+                any(r == can_node[2:can_node.find('/', 2)]
+                    for r in self.rules)):
+                return
+            target = self.functions['internal']['static_functions']
+        # External nodes contain 5 slashes.
+        elif can_node.startswith('//'):
+            if can_node[2] == '/':
+                target = self.functions['external']['undefined']
+            else:
+                p = can_node[2:can_node.find('/', 2)]
+                if any(r == p for r in self.rules):
+                    return
+                if not p in self.functions['external']['products']:
+                    self.functions['external']['products'][p] = \
+                        {'methods': {}}
+                target = self.functions['external']['products'][p]
+        # Internal functions
+        else:
+            target = self.functions['internal']['binaries'][binary]
+        target = target['methods']
+        if can_node not in self.nodes_lookup:
+            self.nodes_lookup[can_node] = self.node_id_counter
+            first, last = lines.split(";")
+            target[self.node_id_counter] = {
+                "metadata": {
+                    "access": scope,
+                    "defined": is_defined,
+                    "first": first,
+                    "last": last
+                },
+                "uri": can_node,
+                "files": [path]
+            }
+            self.node_id_counter += 1
+        elif path not in target[self.nodes_lookup[can_node]]['files']:
+                        target[can_node]['files'].append(path)
+
     def _parse_graph(self, binary):
         """Generate canonical Call-Graph."""
         self.current_binary = binary
@@ -753,36 +817,7 @@ class C_Canonicalizer:
             elements = csv.reader(fdr, delimiter=' ')
             for el in elements:
                 if len(el) == 1:
-                    can_node, path, scope, is_defined, lines = (
-                        self._parse_node_declaration(el[0])
-                    )
-                    # Insert nodes only from the analyzed product.
-                    # External nodes contain 5 slashes.
-                    if can_node.startswith('//'):
-                        continue
-                    if path.endswith('.cs'):  # Skip cscout files
-                        continue
-                    # Static function
-                    if ';' in can_node.split('/')[-1]:
-                        target = self.cha['static_functions']
-                    else:
-                        target = self.cha['binaries'][binary]
-                    if can_node not in target:
-                        first, last = lines.split(";")
-                        target[can_node] = {
-                            "id": self.node_id_counter,
-                            "files": [path],
-                            "metadata": {
-                                "access": scope,
-                                "defined": is_defined,
-                                "first": first,
-                                "last": last
-                            }
-                        }
-                        self.node_id_counter += 1
-                    elif path not in target[can_node]['files']:
-                        target[can_node]['files'].append(path)
-                        self.node_id_counter += 1
+                    self._add_node_in_functions(el[0], binary)
                 else:
                     can_edge = self._parse_edge(el)
                     # If the product of the first node is not the analyzed or
@@ -791,32 +826,24 @@ class C_Canonicalizer:
                         (any(r in can_edge[0] for r in self.rules) or
                          any(r in can_edge[1] for r in self.rules))):
                         continue
-                    if can_edge[0] in self.cha['static_functions']:
-                        target = self.cha['static_functions']
-                    elif can_edge[0] in self.cha['binaries'][binary]:
-                        target = self.cha['binaries'][binary]
-                    else:
+                    if can_edge[0] not in self.nodes_lookup:
                         self.logger.warning("Warning: node %s is not defined",
                                             can_edge[0]
                                             )
                         continue
-                    can_edge[0] = target[can_edge[0]]['id']
-                    if can_edge[1] in self.cha['static_functions']:
-                        target = self.cha['static_functions']
-                    elif can_edge[1] in self.cha['binaries'][binary]:
-                        target = self.cha['binaries'][binary]
+                    node0_id = self.nodes_lookup[can_edge[0]]
+                    if can_edge[1] not in self.nodes_lookup:
+                        self._add_node_in_functions(el[1])
+                    node1_id = self.nodes_lookup[can_edge[1]]
+                    call_type = ''
+                    if can_edge[1].startswith('//'):
+                        if can_edge[1][2] == '/':
+                            call_type = 'resolvedCalls'
+                        else:
+                            call_type = 'externalCalls'
                     else:
-                        target = False
-                    if target:
-                        can_edge[1] = target[can_edge[1]]['id']
-                        self.can_graph['internalCalls'].append(can_edge)
-                    else:
-                        can_edge[0] = str(can_edge[0])
-                        if not can_edge[1].startswith('//'):
-                            can_edge[1] = '///{}'.format(
-                                can_edge[1][can_edge[1].find(';'):]
-                            )
-                        self.can_graph['externalCalls'].append(can_edge)
+                        call_type = 'internalCalls'
+                    self.can_graph[call_type].append([node0_id, node1_id])
 
     def save(self):
         data = {
@@ -832,7 +859,7 @@ class C_Canonicalizer:
             'build_depset': self.build_dependencies,
             'undeclared_depset': self._get_environment_dependenies(),
             'graph': self.can_graph,
-            'cha': self.cha
+            'functions': self.functions
         }
         with open(self.output, 'w') as fdr:
             json.dump(data, fdr)
@@ -888,7 +915,6 @@ class C_Canonicalizer:
             self.dependencies.extend(deps)
         # Update self.dependencies_lookup
         for dep in deps:
-            print(dep)
             self.dependencies_lookup[dep['product']] = dep['product']
             for alt in dep['alternatives']:
                 self.dependencies_lookup[alt['product']] = dep['product']
@@ -968,7 +994,6 @@ class C_Canonicalizer:
         if product != self.product:
             if binary.endswith('.so') or (binary == '' and not is_static):
                 product = ''
-            #  print(product)
             if isinstance(product, bytes):
                 product = product.decode("utf-8")
             forge_product_version += '//' + product
