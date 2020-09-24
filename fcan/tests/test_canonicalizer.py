@@ -31,6 +31,18 @@ from fcan.fcan import C_Canonicalizer
 from fcan.fcan import CanonicalizationError
 
 
+LIBC6_DEV = (
+    '/usr/include/x86_64-linux-gnu/sys/stat.h',
+    '/usr/include/x86_64-linux-gnu/bits/fcntl2.h',
+    '/usr/include/stdio.h',
+    '/usr/include/x86_64-linux-gnu/bits/stdio2.h',
+    '/usr/include/x86_64-linux-gnu/bits/unistd.h',
+    '/usr/include/x86_64-linux-gnu/sys/stat.h',
+    '/usr/include/fcntl.h',
+    '/usr/include/endian.h'
+)
+
+
 class find_product_mock(Mock):
     def __call__(self, *args, **kwargs):
         path = args[0]
@@ -39,11 +51,11 @@ class find_product_mock(Mock):
         elif path.startswith('/usr/local/include/cscout/'):
             return '', 1
         elif path.startswith('/usr/include/debian-installer/'):
-            return 'libdebian-installer4-dev:1.53 amd64'.encode(), 0
+            return 'libdebian-installer4-dev', 0
         elif path.startswith('/usr/include/cdebconf/'):
-            return 'libdebconfclient0-dev'.encode(), 0
-        elif path.startswith('/usr/include/stdlib.h'):
-            return 'libc6-dev'.encode(), 0
+            return 'libdebconfclient0-dev', 0
+        elif any(path.startswith(x) for x in LIBC6_DEV):
+            return 'libc6-dev', 0
         return '', 1
 
 
@@ -172,31 +184,17 @@ build_dependencies = [{'alternatives': [],
                        'is_virtual': False,
                        'product': 'libdebian-installer4-dev'}]
 
-# anna-1.58
-can_graph = [
-    ('/C/main()', '//libc6-dev/C/getenv()'),
-    ('/./anna.c;foo()', '//libc6-dev/C/getenv()'),
-    ('/src/anna.c;main()', '//libc6-dev/C/getenv()'),
-    ('/C/set_retriever()',
-     '//libdebconfclient0-dev/%2Fusr%2Finclude%2Fcdebconf/' +
-     'debconfclient.h;debconf_set()'),
-    ('/C/main()', '//libdebian-installer4-dev/C/' +
-     'di_system_package_check_subarchitecture()'),
-    ('/C/main()', '//libdebian-installer4-dev/' +
-     '%2Fusr%2Finclude%2Fdebian-installer%2Fsystem/packages.h;' +
-     'di_system_packages_status_read_file()')
-]
 
+# Functions
+with open('./tests/data/anna171functions.json', 'r') as json_file:
+    functions = json.load(json_file)
 
 # anna-1.71
-can_graph2 = [
-    ('/C/set_retriever()', '//libdebconfclient0-dev/%2Fusr%2Finclude%2F' +
-     'cdebconf/debconfclient.h;debconf_set()'),
-    ('/C/set_retriever()', '/C/xasprintf()'),
-    ('/C/retriever_retrieve()', '//UNDEFINED/C/free()'),
-    ('/C/retriever_retrieve()', '/C/get_retriever()'),
-    ('/C/is_installed()', '//UNDEFINED/C/di_packages_get_package()')
-]
+can_graph = {
+    'externalCalls': [[4, 12], [11, 13], [10, 17]],
+    'internalCalls': [[2, 1], [5, 3], [11, 6], [11, 8], [11, 9]],
+    'resolvedCalls': [[11, 14], [11, 15], [11, 16]]
+}
 
 
 def test_init():
@@ -221,116 +219,99 @@ def test_parse_files(mock_parse_deb_file):
         assert dep in can.build_dependencies
 
 
-#  @patch("fcan.fcan.find_product", new_callable=find_product_mock)
-#  @patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
-#  def test_gen_can_cgraph(mock_find_product, mock_parse_deb_file):
-    #  can = get_canonicalizer('anna-1.58')
-    #  can.parse_files()
-    #  can.gen_can_cgraph()
-    #  assert can_graph == can.can_graph
+@patch("fcan.fcan.find_product", new_callable=find_product_mock)
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_gen_can_functions(mock_find_product, mock_parse_deb_file):
+    can = get_canonicalizer('anna-1.71-defined', 'mydeb.udeb', 'anna_1.71.dsc')
+    can.parse_files()
+    can.gen_can_cgraph()
+    assert functions == can.functions
 
 
-#  @patch("fcan.fcan.find_product", new_callable=find_product_mock)
-#  @patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
-#  def test_gen_can_cgraph_defined(mock_find_product, mock_parse_deb_file):
-    #  can = get_canonicalizer_with_custom_deps(
-        #  'anna-1.71-defined', 'custom_deps.json', defined_bit=True
-    #  )
-    #  can.parse_files()
-    #  can.gen_can_cgraph()
-    #  assert can_graph2 == can.can_graph
+@patch("fcan.fcan.find_product", new_callable=find_product_mock)
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_gen_can_cgraph(mock_find_product, mock_parse_deb_file):
+    can = get_canonicalizer('anna-1.71-defined', 'mydeb.udeb', 'anna_1.71.dsc')
+    can.parse_files()
+    can.gen_can_cgraph()
+    assert can_graph == can.can_graph
 
 
-#  @patch("fcan.fcan.find_product", new_callable=find_product_mock)
-#  @patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
-#  def test_save(mock_find_product, mock_parse_deb_file):
-    #  directory = get_directory('anna-1.58')
-    #  filename = directory + '/' + 'can_cgraph.json'
-    #  output = './tests/data/anna-1.58/can_cgraph.json'
-    #  can = get_canonicalizer('anna-1.58', output=output)
-    #  can.parse_files()
-    #  can.gen_can_cgraph()
-    #  can.save()
-    #  with open(filename, 'r') as f:
-        #  res = json.load(f)
-    #  final_dependencies = copy.deepcopy(dependencies)
-    #  environment_deps = [{"architectures": "", "constraints": "",
-                         #  "forge": "debian", "product": "libc6-dev"}]
-    #  for dep in final_dependencies:
-        #  assert dep in res['depset']
-    #  assert environment_deps[0] in res['environment_depset']
-    #  for node in can_graph:
-        #  assert list(node) in res['graph']
-    #  assert res['product'] == 'anna'
-    #  assert res['version'] == '1.58'
-    #  assert res['forge'] == 'debian'
-    #  assert res['timestamp'] == '1488709580'
-    #  os.remove(filename)
+@patch("fcan.fcan.find_product", new_callable=find_product_mock)
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_save(mock_find_product, mock_parse_deb_file):
+    output = './tests/data/anna-1.71-defined/output.json'
+    can = get_canonicalizer(
+        'anna-1.71-defined', 'mydeb.udeb', 'anna_1.71.dsc', output=output)
+    can.parse_files()
+    can.gen_can_cgraph()
+    can.save()
+    with open(output, 'r') as f:
+        res = json.load(f)
+    with open('./tests/data/anna-1.71-defined/cgraph.json', 'r') as f:
+        test = json.load(f)
+    assert res['product'] == "anna"
+    assert res['version'] == "1.71"
+    assert res['release'] == ""
+    assert res['generator'] == ""
+    assert res['source'] == ""
+    assert res['forge'] == "debian"
+    assert res['architecture'] == "amd64"
+    assert res['functions'] == test['functions']
+    assert res['graph'] == test['graph']
+    os.remove(output)
 
 
-#  @patch("fcan.fcan.find_product", new_callable=find_product_mock)
-#  @patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
-#  def test_canonicalize(mock_find_product, mock_parse_deb_file):
-    #  output = './tests/data/anna-1.58/can_cgraph.json'
-    #  can = get_canonicalizer_with_custom_deps(
-            #  'anna-1.58', 'custom_deps.json', output=output
-    #  )
-    #  can.canonicalize()
-    #  directory = get_directory('anna-1.58')
-    #  filename = directory + '/' + 'can_cgraph.json'
-    #  with open(filename, 'r') as f:
-        #  res = json.load(f)
-    #  final_dependencies = copy.deepcopy(dependencies)
-    #  final_dependencies.append({'product': "my_dep", 'forge': "github",
-                               #  'constraints': "", 'architecture': ""})
-    #  environment_deps = [{"architectures": "", "constraints": "",
-                         #  "forge": "debian", "product": "libc6-dev"}]
-    #  final_can_graph = copy.deepcopy(can_graph)
-    #  final_can_graph.append(('/C/main()', '//my_dep/C/sum()'))
-    #  for dep in final_dependencies:
-        #  assert dep in res['depset']
-    #  assert environment_deps[0] in res['environment_depset']
-    #  for node in final_can_graph:
-        #  assert list(node) in res['graph']
-    #  assert res['product'] == 'anna'
-    #  assert res['version'] == '1.58'
-    #  assert res['forge'] == 'debian'
-    #  assert res['timestamp'] == '1488709580'
-    #  os.remove(filename)
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_add_environment_dependenies(mock_parse_deb_file):
+    can = get_canonicalizer('anna-1.71-defined', 'mydeb.udeb', 'anna_1.71.dsc')
+    can.parse_files()
+    can.environment_deps.add('dep')
+    environment_deps = can._get_environment_dependenies()
+    temp = {'architectures': '', 'constraints': '',
+            'forge': 'debian', 'product': 'dep', 'alternatives': [],
+            'dependency_type': '', 'is_virtual': False}
+    print(environment_deps)
+    assert temp in environment_deps
 
 
-#  @patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
-#  def test_add_environment_dependenies(mock_parse_deb_file):
-    #  can = get_canonicalizer('anna-1.58')
-    #  can.parse_files()
-    #  can.environment_deps.add('dep')
-    #  environment_deps = can._get_environment_dependenies()
-    #  temp = {'architectures': '', 'constraints': '',
-            #  'forge': 'debian', 'product': 'dep'}
-    #  assert environment_deps[0] == temp
-
-
-#  @patch("fcan.fcan.find_product", new_callable=find_product_mock)
-#  @patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
-#  def test_find_product(mock_find_product, mock_parse_deb_file):
-    #  can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json')
-    #  can.parse_files()
-    #  # Test 1
-    #  path1 = '/build/anna-xjzj1e/anna-1.58/retriever.c'
-    #  assert can._find_product(path1) == 'anna'
-    #  # Test 2
-    #  path2 = '/usr/local/include/cscout/csmake-pre-defs.h'
-    #  assert can._find_product(path2) == 'CScout'
-    #  # Test 3
-    #  path3 = '/usr/include/debian-installer/exec.h'
-    #  assert can._find_product(path3) == 'libdebian-installer4-dev'
-    #  # Test 4
-    #  can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json',
-                                             #  True)
-    #  path3 = '/usr/include/debian-installer/exec.h'
-    #  assert can._find_product(path3) == 'libdebian-installer4-dev'
-    #  path4 = '/usr/local/include/my_dep/utils.h'
-    #  assert can._find_product(path4) == 'my_dep'
+@patch("fcan.fcan.find_product", new_callable=find_product_mock)
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_find_product(mock_find_product, mock_parse_deb_file):
+    can = get_canonicalizer('anna-1.71-defined', 'mydeb.udeb', 'anna_1.71.dsc')
+    can.parse_files()
+    can.current_binary = "anna"
+    # Test 1
+    path1 = '/build/anna-xjzj1e/anna-1.71/retriever.c'
+    function1 = 'retrieve'
+    assert can._find_product(path1, function1) == 'anna'
+    # Test 2
+    path2 = '/usr/local/include/cscout/csmake-pre-defs.h'
+    function2 = 'foo'
+    assert can._find_product(path2, function2) == 'UNDEFINED'
+    # Test 3
+    path3 = '/usr/include/debian-installer/exec.h'
+    function3 = 'exec'
+    assert can._find_product(path3, function3) == 'libdebian-installer4-dev'
+    # With Custom Dependencies
+    can = get_canonicalizer_with_custom_deps(
+        'anna-1.71-defined', 'custom_deps.json',
+        'mydeb.udeb', 'anna_1.71.dsc', True
+    )
+    can.parse_files()
+    can.current_binary = "anna"
+    # Test 4
+    path4 = '/usr/include/debian-installer/exec.h'
+    function4 = 'exec'
+    assert can._find_product(path4, function4) == 'libdebian-installer4-dev'
+    # Test 5
+    path5 = '/usr/local/include/my_dep/utils.h'
+    function5 = 'bar'
+    # Test 6
+    assert can._find_product(path5, function5) == 'my_dep'
+    path6 = '/usr/local/include/cscout/csmake-pre-defs.h'
+    function6 = 'foo'
+    assert can._find_product(path6, function6) == 'CScout'
 
 
 #  @patch("fcan.fcan.find_product", new_callable=find_product_mock)
@@ -383,22 +364,6 @@ def test_parse_files(mock_parse_deb_file):
     #  node5 = 'public:0:/usr/include/debian-installer/packages.h:di_packages_get_package'
     #  res5 = ('UNDEFINED', 'C', 'di_packages_get_package()')
     #  assert can._parse_node(node5) == res5
-
-
-#  @patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
-#  def test_uri_generator(mock_parse_deb_file):
-    #  can = get_canonicalizer('anna-1.58')
-    #  can.parse_files()
-    #  # Test 1
-    #  node1 = ('anna', 'C', 'set_retriever()')
-    #  res1 = '/C/set_retriever()'
-    #  assert can._uri_generator(node1[0], node1[1], node1[2]) == res1
-    #  # Test 2
-    #  node2 = ('libdebconfclient0-dev', '%2Fusr%2Finclude%2Fcdebconf',
-             #  'debconfclient.h;debconf_set()')
-    #  res2 = '//libdebconfclient0-dev/%2Fusr%2Finclude%2Fcdebconf/' +\
-        #  'debconfclient.h;debconf_set()'
-    #  assert can._uri_generator(node2[0], node2[1], node2[2]) == res2
 
 
 #  @patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)

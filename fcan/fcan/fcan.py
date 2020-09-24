@@ -627,7 +627,8 @@ class C_Canonicalizer:
         }
         self.functions = {
             'internal': {'binaries': {}, 'static_functions': {'methods': {}}},
-            'external': {'products': {}, 'undefined': {'methods': {}}}
+            'external': {'products': {}, 'undefined': {'methods': {}},
+                         'static_functions': {}}
         }
         self.analyzer = analyzer
         self.nodes_lookup = {}
@@ -680,7 +681,7 @@ class C_Canonicalizer:
 
         # Nodes that contain one of those values are skipped from the canonical
         # Call-Graph
-        self.rules = ['NULL']
+        self.rules = ['NULL', 'UNDEFINED']
 
         self.dependencies = []
         self.build_dependencies = []
@@ -761,10 +762,12 @@ class C_Canonicalizer:
         for binary in self.binaries.keys():
             self._parse_graph(binary)
 
-    def _add_node_in_functions(self, node, binary=''):
+    def _add_node_in_functions(self, node, is_node_decl, binary=''):
         can_node, path, scope, is_defined, lines = (
             self._parse_node_declaration(node)
         )
+        if is_node_decl and can_node.startswith('//'):
+            return
         if path.endswith('.cs'):  # Skip cscout files
             return
 
@@ -774,7 +777,14 @@ class C_Canonicalizer:
                 any(r == can_node[2:can_node.find('/', 2)]
                     for r in self.rules)):
                 return
-            target = self.functions['internal']['static_functions']
+            if can_node.startswith('//'):
+                p = can_node[2:can_node.find('/', 2)]
+                if not p in self.functions['external']['static_functions']:
+                    self.functions['external']['static_functions'][p] = \
+                        {'methods': {}}
+                target = self.functions['external']['static_functions'][p]
+            else:
+                target = self.functions['internal']['static_functions']
         # External nodes contain 5 slashes.
         elif can_node.startswith('//'):
             if can_node[2] == '/':
@@ -794,7 +804,7 @@ class C_Canonicalizer:
         if can_node not in self.nodes_lookup:
             self.nodes_lookup[can_node] = self.node_id_counter
             first, last = lines.split(";")
-            target[self.node_id_counter] = {
+            target[str(self.node_id_counter)] = {
                 "metadata": {
                     "access": scope,
                     "defined": is_defined,
@@ -816,8 +826,9 @@ class C_Canonicalizer:
             # graph
             elements = csv.reader(fdr, delimiter=' ')
             for el in elements:
+                # Node declaration
                 if len(el) == 1:
-                    self._add_node_in_functions(el[0], binary)
+                    self._add_node_in_functions(el[0], True, binary)
                 else:
                     can_edge = self._parse_edge(el)
                     # If the product of the first node is not the analyzed or
@@ -833,14 +844,14 @@ class C_Canonicalizer:
                         continue
                     node0_id = self.nodes_lookup[can_edge[0]]
                     if can_edge[1] not in self.nodes_lookup:
-                        self._add_node_in_functions(el[1])
+                        self._add_node_in_functions(el[1], False)
                     node1_id = self.nodes_lookup[can_edge[1]]
                     call_type = ''
                     if can_edge[1].startswith('//'):
                         if can_edge[1][2] == '/':
-                            call_type = 'resolvedCalls'
-                        else:
                             call_type = 'externalCalls'
+                        else:
+                            call_type = 'resolvedCalls'
                     else:
                         call_type = 'internalCalls'
                     self.can_graph[call_type].append([node0_id, node1_id])

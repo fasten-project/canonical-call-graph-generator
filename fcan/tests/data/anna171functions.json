@@ -1,0 +1,252 @@
+{
+  "external": {
+    "products": {
+      "libdebian-installer4-dev": {
+        "methods": {
+          "16": {
+            "files": [
+              "/usr/include/debian-installer/system/utils.h"
+            ],
+            "metadata": {
+              "access": "public",
+              "defined": false,
+              "first": "33",
+              "last": "33"
+            },
+            "uri": "//libdebian-installer4-dev/libdebian-installer.a;C/di_system_init()"
+          }
+        }
+      }
+    },
+    "static_functions": {
+      "libdebconfclient0-dev": {
+        "methods": {
+          "14": {
+            "files": [
+              "/usr/include/cdebconf/debconfclient.h"
+            ],
+            "metadata": {
+              "access": "static",
+              "defined": true,
+              "first": "105",
+              "last": "108"
+            },
+            "uri": "//libdebconfclient0-dev/;%2Fusr%2Finclude%2Fcdebconf/debconfclient.h;debconf_capb()"
+          }
+        }
+      },
+      "libdebian-installer4-dev": {
+        "methods": {
+          "15": {
+            "files": [
+              "/usr/include/debian-installer/system/packages.h"
+            ],
+            "metadata": {
+              "access": "static",
+              "defined": true,
+              "first": "87",
+              "last": "90"
+            },
+            "uri": "//libdebian-installer4-dev/;%2Fusr%2Finclude%2Fdebian-installer%2Fsystem/packages.h;di_system_packages_status_read_file()"
+          }
+        }
+      }
+    },
+    "undefined": {
+      "methods": {
+        "12": {
+          "files": [
+            "/usr/include/x86_64-linux-gnu/bits/stdio2.h"
+          ],
+          "metadata": {
+            "access": "public",
+            "defined": true,
+            "first": "255",
+            "last": "266"
+          },
+          "uri": "///libc.so;C/fgets()"
+        },
+        "13": {
+          "files": [
+            "/usr/include/cdebconf/debconfclient.h"
+          ],
+          "metadata": {
+            "access": "public",
+            "defined": false,
+            "first": "61",
+            "last": "61"
+          },
+          "uri": "///libdebconfclient.so;C/debconfclient_new()"
+        },
+        "17": {
+          "files": [
+            "/usr/include/stdio.h"
+          ],
+          "metadata": {
+            "access": "public",
+            "defined": false,
+            "first": "632",
+            "last": "632"
+          },
+          "uri": "///libc.so;C/fputs()"
+        }
+      }
+    }
+  },
+  "internal": {
+    "binaries": {
+      "anna": {
+        "methods": {
+          "0": {
+            "files": [
+              "util.c"
+            ],
+            "metadata": {
+              "access": "public",
+              "defined": true,
+              "first": "77",
+              "last": "95"
+            },
+            "uri": "/anna;C/is_installed()"
+          },
+          "1": {
+            "files": [
+              "util.c"
+            ],
+            "metadata": {
+              "access": "public",
+              "defined": true,
+              "first": "30",
+              "last": "40"
+            },
+            "uri": "/anna;C/xasprintf()"
+          },
+          "11": {
+            "files": [
+              "anna.c"
+            ],
+            "metadata": {
+              "access": "public",
+              "defined": true,
+              "first": "414",
+              "last": "566"
+            },
+            "uri": "/anna;C/main()"
+          },
+          "2": {
+            "files": [
+              "retriever.c"
+            ],
+            "metadata": {
+              "access": "public",
+              "defined": true,
+              "first": "125",
+              "last": "132"
+            },
+            "uri": "/anna;C/retriever_cleanup()"
+          },
+          "3": {
+            "files": [
+              "util.c"
+            ],
+            "metadata": {
+              "access": "public",
+              "defined": true,
+              "first": "288",
+              "last": "310"
+            },
+            "uri": "/anna;C/drop_excludes()"
+          },
+          "4": {
+            "files": [
+              "util.c"
+            ],
+            "metadata": {
+              "access": "public",
+              "defined": true,
+              "first": "263",
+              "last": "285"
+            },
+            "uri": "/anna;C/take_includes()"
+          },
+          "6": {
+            "files": [
+              "retriever.c"
+            ],
+            "metadata": {
+              "access": "public",
+              "defined": true,
+              "first": "33",
+              "last": "43"
+            },
+            "uri": "/anna;C/get_retriever()"
+          },
+          "8": {
+            "files": [
+              "anna.c"
+            ],
+            "metadata": {
+              "access": "public",
+              "defined": true,
+              "first": "11",
+              "last": "31"
+            },
+            "uri": "/anna;C/get_packages()"
+          }
+        }
+      }
+    },
+    "static_functions": {
+      "methods": {
+        "10": {
+          "files": [
+            "util.c"
+          ],
+          "metadata": {
+            "access": "static",
+            "defined": true,
+            "first": "12",
+            "last": "16"
+          },
+          "uri": "/;./util.c;oom_die()"
+        },
+        "5": {
+          "files": [
+            "anna.c"
+          ],
+          "metadata": {
+            "access": "static",
+            "defined": true,
+            "first": "71",
+            "last": "235"
+          },
+          "uri": "/;./anna.c;choose_modules()"
+        },
+        "7": {
+          "files": [
+            "util.c"
+          ],
+          "metadata": {
+            "access": "static",
+            "defined": true,
+            "first": "96",
+            "last": "108"
+          },
+          "uri": "/;./util.c;choice_strcpy()"
+        },
+        "9": {
+          "files": [
+            "anna.c"
+          ],
+          "metadata": {
+            "access": "static",
+            "defined": true,
+            "first": "244",
+            "last": "413"
+          },
+          "uri": "/;./anna.c;install_modules()"
+        }
+      }
+    }
+  }
+}
