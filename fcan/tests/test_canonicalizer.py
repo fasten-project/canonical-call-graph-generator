@@ -314,126 +314,51 @@ def test_find_product(mock_find_product, mock_parse_deb_file):
     assert can._find_product(path6, function6) == 'CScout'
 
 
-#  @patch("fcan.fcan.find_product", new_callable=find_product_mock)
-#  @patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
-#  def test_parse_node(mock_find_product, mock_parse_deb_file):
-    #  can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json')
-    #  can.parse_files()
-    #  # Test 1
-    #  node1 = 'public:/build/anna-xjzj1e/anna-1.58/retriever.c:set_retriever'
-    #  res1 = ('anna', 'C', 'set_retriever()')
-    #  assert can._parse_node(node1) == res1
-    #  # Test 2
-    #  node2 = 'static:/usr/local/include/cscout/csmake-pre-defs.h:__attribute__'
-    #  res2 = ('CScout', '%2Fusr%2Flocal%2Finclude%2Fcscout',
-            #  'csmake-pre-defs.h;__attribute__()')
-    #  assert can._parse_node(node2) == res2
-    #  # Test 3
-    #  node3 = 'static:/usr/include/cdebconf/debconfclient.h:debconf_set'
-    #  res3 = ('libdebconfclient0-dev', '%2Fusr%2Finclude%2Fcdebconf',
-            #  'debconfclient.h;debconf_set()')
-    #  assert can._parse_node(node3) == res3
+@patch("fcan.fcan.find_product", new_callable=find_product_mock)
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_parse_node(mock_find_product, mock_parse_deb_file):
+    can = get_canonicalizer('anna-1.71-defined', 'mydeb.udeb', 'anna_1.71.dsc')
+    can.parse_files()
+    can.current_binary = "anna"
+    # Test 1
+    node1 = 'public:1:33;43:/build/anna-VgvUV2/anna-1.71/retriever.c:get_retriever'
+    res1 = ('anna', 'anna', 'C', 'get_retriever()', False)
+    assert can._parse_node(node1) == res1
+    # Test 2
+    node2 = 'static:1:105;108:/usr/include/cdebconf/debconfclient.h:debconf_capb'
+    res2 = ('libdebconfclient0-dev', '', '%2Fusr%2Finclude%2Fcdebconf',
+            'debconfclient.h;debconf_capb()', True)
+    assert can._parse_node(node2) == res2
 
 
-#  @patch("fcan.fcan.find_product", new_callable=find_product_mock)
-#  @patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
-#  def test_parse_node_defined(mock_find_product, mock_parse_deb_file):
-    #  can = get_canonicalizer_with_custom_deps(
-        #  'anna-1.71-defined', 'custom_deps.json', defined_bit=True
-    #  )
-    #  can.parse_files()
-    #  # Test 1
-    #  node1 = 'public:1:/build/anna-xjzj1e/anna-1.58/retriever.c:set_retriever'
-    #  res1 = ('anna', 'C', 'set_retriever()')
-    #  assert can._parse_node(node1) == res1
-    #  # Test 2
-    #  node2 = 'static:1:/usr/local/include/cscout/csmake-pre-defs.h:__attribute__'
-    #  res2 = ('CScout', '%2Fusr%2Flocal%2Finclude%2Fcscout',
-            #  'csmake-pre-defs.h;__attribute__()')
-    #  assert can._parse_node(node2) == res2
-    #  # Test 3
-    #  node3 = 'static:1:/usr/include/cdebconf/debconfclient.h:debconf_set'
-    #  res3 = ('libdebconfclient0-dev', '%2Fusr%2Finclude%2Fcdebconf',
-            #  'debconfclient.h;debconf_set()')
-    #  assert can._parse_node(node3) == res3
-    #  # Test 4
-    #  node4 = 'public:0:/usr/include/stdlib.h:free'
-    #  res4 = ('UNDEFINED', 'C', 'free()')
-    #  assert can._parse_node(node4) == res4
-    #  # Test 5
-    #  node5 = 'public:0:/usr/include/debian-installer/packages.h:di_packages_get_package'
-    #  res5 = ('UNDEFINED', 'C', 'di_packages_get_package()')
-    #  assert can._parse_node(node5) == res5
+@patch("fcan.fcan.find_product", new_callable=find_product_mock)
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_get_uri(mock_find_product, mock_parse_deb_file):
+    can = get_canonicalizer('anna-1.71-defined', 'mydeb.udeb', 'anna_1.71.dsc')
+    can.parse_files()
+    can.current_binary = "anna"
+    # Test 1
+    node1 = 'public:1:33;43:/build/anna-VgvUV2/anna-1.71/retriever.c:get_retriever'
+    res1 = '/anna;C/get_retriever()'
+    assert can._get_uri(node1) == res1
+    # Test 2
+    node2 = 'static:1:105;108:/usr/include/cdebconf/debconfclient.h:debconf_capb'
+    res2 = '//libdebconfclient0-dev/;%2Fusr%2Finclude%2Fcdebconf/debconfclient.h;debconf_capb()'
+    assert can._get_uri(node2) == res2
 
 
-#  @patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
-#  def test_uri_generator(mock_parse_deb_file):
-    #  can = get_canonicalizer_with_custom_deps(
-        #  'anna-1.71-defined', 'custom_deps.json', defined_bit=True
-    #  )
-    #  can.parse_files()
-    #  # Test 1
-    #  node1 = ('UNDEFINED', 'C', 'free()')
-    #  res1 = '//UNDEFINED/C/free()'
-    #  assert can._uri_generator(node1[0], node1[1], node1[2]) == res1
-    #  # Test 2
-    #  node2 = ('UNDEFINED', 'C', 'di_packages_get_package()')
-    #  res2 = '//UNDEFINED/C/di_packages_get_package()'
-    #  assert can._uri_generator(node2[0], node2[1], node2[2]) == res2
-
-
-#  @patch("fcan.fcan.find_product", new_callable=find_product_mock)
-#  @patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
-#  def test_get_uri(mock_find_product, mock_parse_deb_file):
-    #  can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json')
-    #  can.parse_files()
-    #  # Test 1
-    #  node1 = 'public:/build/anna-xjzj1e/anna-1.58/retriever.c:set_retriever'
-    #  res1 = '/C/set_retriever()'
-    #  assert can._get_uri(node1) == res1
-    #  # Test 2
-    #  node2 = 'static:/usr/local/include/cscout/csmake-pre-defs.h:__attribute__'
-    #  res2 = '//CScout/%2Fusr%2Flocal%2Finclude%2Fcscout/' + \
-        #  'csmake-pre-defs.h;__attribute__()'
-    #  assert can._get_uri(node2) == res2
-    #  # Test 3
-    #  node3 = 'static:/usr/include/cdebconf/debconfclient.h:debconf_set'
-    #  res3 = '//libdebconfclient0-dev/%2Fusr%2Finclude%2Fcdebconf/' +\
-        #  'debconfclient.h;debconf_set()'
-    #  assert can._get_uri(node3) == res3
-    #  # Test 4
-    #  node4 = 'static:/usr/include/random_proj/utils.h:rand'
-    #  res4 = '//NULL/%2Fusr%2Finclude%2Frandom_proj/utils.h;rand()'
-    #  assert can._get_uri(node4) == res4
-    #  # Test 5
-    #  assert 'libc6-dev' not in can.environment_deps
-    #  node5 = 'public:/usr/include/stdlib.h:getenv'
-    #  res5 = '//libc6-dev/C/getenv()'
-    #  assert can._get_uri(node5) == res5
-    #  assert 'libc6-dev' in can.environment_deps
-    #  # Test 6
-    #  can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json',
-                                             #  True)
-    #  my_dep = {'product': "my_dep", 'forge': "github", 'constraints': "",
-              #  'architecture': ""}
-    #  node6 = 'public:/usr/local/include/my_dep/utils.h:sum'
-    #  res6 = '//my_dep/C/sum()'
-    #  assert can._get_uri(node6) == res6
-    #  assert my_dep in can.dependencies
-
-
-#  @patch("fcan.fcan.find_product", new_callable=find_product_mock)
-#  @patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
-#  def test_parse_edge(mock_find_product, mock_parse_deb_file):
-    #  can = get_canonicalizer_with_custom_deps('anna-1.58', 'custom_deps.json')
-    #  can.parse_files()
-    #  edge = [
-        #  'public:/build/anna-xjzj1e/anna-1.58/retriever.c:set_retriever',
-        #  'static:/usr/local/include/cscout/csmake-pre-defs.h:__attribute__'
-    #  ]
-    #  nodes = (
-        #  '/C/set_retriever()',
-        #  '//CScout/%2Fusr%2Flocal%2Finclude%2Fcscout/' +
-        #  'csmake-pre-defs.h;__attribute__()'
-    #  )
-    #  assert can._parse_edge(edge) == nodes
+@patch("fcan.fcan.find_product", new_callable=find_product_mock)
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_parse_edge(mock_find_product, mock_parse_deb_file):
+    can = get_canonicalizer('anna-1.71-defined', 'mydeb.udeb', 'anna_1.71.dsc')
+    can.parse_files()
+    can.current_binary = "anna"
+    edge = [
+        'public:1:33;43:/build/anna-VgvUV2/anna-1.71/retriever.c:get_retriever',
+        'static:1:105;108:/usr/include/cdebconf/debconfclient.h:debconf_capb'
+    ]
+    nodes = [
+        '/anna;C/get_retriever()',
+        '//libdebconfclient0-dev/;%2Fusr%2Finclude%2Fcdebconf/debconfclient.h;debconf_capb()'
+    ]
+    assert can._parse_edge(edge) == nodes
