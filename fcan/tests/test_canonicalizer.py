@@ -191,9 +191,10 @@ with open('./tests/data/anna171functions.json', 'r') as json_file:
 
 # anna-1.71
 can_graph = {
-    'externalCalls': [[4, 12], [11, 13], [10, 17]],
-    'internalCalls': [[2, 1], [5, 3], [11, 6], [11, 8], [11, 9]],
-    'resolvedCalls': [[11, 14], [11, 15], [11, 16]]
+    'externalCalls': [["4", "12", {}], ["11", "13", {}], ["10", "17", {}]],
+    'internalCalls': [["2", "1", {}], ["5", "3", {}], ["11", "6", {}],
+        ["11", "8", {}], ["11", "9", {}]],
+    'resolvedCalls': [["11", "14", {}], ["11", "15", {}], ["11", "16", {}]]
 }
 
 
@@ -217,6 +218,15 @@ def test_parse_files(mock_parse_deb_file):
         assert dep in can.dependencies
     for dep in build_dependencies:
         assert dep in can.build_dependencies
+
+
+@patch("fcan.fcan.find_product", new_callable=find_product_mock)
+@patch("fcan.fcan.parse_deb_file", new_callable=parse_deb_file_mock)
+def test_gen_can_nodes(mock_find_product, mock_parse_deb_file):
+    can = get_canonicalizer('anna-1.71-defined', 'mydeb.udeb', 'anna_1.71.dsc')
+    can.parse_files()
+    can.gen_can_cgraph()
+    assert 18 == can.node_id_counter
 
 
 @patch("fcan.fcan.find_product", new_callable=find_product_mock)
@@ -259,6 +269,7 @@ def test_save(mock_find_product, mock_parse_deb_file):
     assert res['architecture'] == "amd64"
     assert res['functions'] == test['functions']
     assert res['graph'] == test['graph']
+    assert res['nodes'] == test['nodes']
     os.remove(output)
 
 

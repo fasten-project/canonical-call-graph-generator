@@ -854,7 +854,9 @@ class C_Canonicalizer:
                             call_type = 'resolvedCalls'
                     else:
                         call_type = 'internalCalls'
-                    self.can_graph[call_type].append([node0_id, node1_id])
+                    self.can_graph[call_type].append(
+                        [str(node0_id), str(node1_id), {}]
+                    )
 
     def save(self):
         data = {
@@ -870,7 +872,8 @@ class C_Canonicalizer:
             'build_depset': self.build_dependencies,
             'undeclared_depset': self._get_environment_dependenies(),
             'graph': self.can_graph,
-            'functions': self.functions
+            'functions': self.functions,
+            'nodes': self.node_id_counter
         }
         with open(self.output, 'w') as fdr:
             json.dump(data, fdr)
