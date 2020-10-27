@@ -799,7 +799,12 @@ class C_Canonicalizer:
                 target = self.functions['external']['products'][p]
         # Internal functions
         else:
-            target = self.functions['internal']['binaries'][binary]
+            try:
+                target = self.functions['internal']['binaries'][binary]
+            except KeyError:
+                # There wasn't a node declaration for this function
+                binary = can_node[1:can_node.find(';')]
+                target = self.functions['internal']['binaries'][binary]
         target = target['methods']
         if can_node not in self.nodes_lookup:
             self.nodes_lookup[can_node] = self.node_id_counter
@@ -815,8 +820,8 @@ class C_Canonicalizer:
                 "files": [path]
             }
             self.node_id_counter += 1
-        elif path not in target[self.nodes_lookup[can_node]]['files']:
-                        target[can_node]['files'].append(path)
+        elif path not in target[str(self.nodes_lookup[can_node])]['files']:
+            target[can_node]['files'].append(path)
 
     def _parse_graph(self, binary):
         """Generate canonical Call-Graph."""
