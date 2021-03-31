@@ -578,7 +578,7 @@ class C_Canonicalizer:
             product: Product's name.
             source: Source's name.
             version: Product's version (string).
-            version: Product's architecture.
+            architecture: Product's architecture.
             timestamp: seconds form epoch.
             dependencies: Product's dependencies.
             build_dependencies: Product's build dependencies.
@@ -594,7 +594,8 @@ class C_Canonicalizer:
                     "access": "public",
                     "defined": true,
                     "first": "109",
-                    "last": "116"
+                    "last": "116",
+                    "product": "libc6" # Empty string if not in undefined methods
                   }
                   "uri": "C uri"
                 }
@@ -604,6 +605,7 @@ class C_Canonicalizer:
             environment_deps: Dependencies that are not declared in deb.
             virtuals: Map from virtual packages to list of packages that
                 implements them.
+            dynamic_libs_lookup: A lookup from node to dynamic library
         Raise:
             CanonicalizationError: if any of the input files does not exist or
                 is empty
@@ -632,6 +634,7 @@ class C_Canonicalizer:
         }
         self.analyzer = analyzer
         self.nodes_lookup = {}
+        self.dynamic_libs_lookup = {}
         self.node_id_counter = 0
 
         if not (os.path.exists(self.deb) and os.path.getsize(self.deb) > 0):
@@ -807,6 +810,9 @@ class C_Canonicalizer:
                 target = self.functions['internal']['binaries'][binary]
         target = target['methods']
         if can_node not in self.nodes_lookup:
+            product = ''
+            if can_node.startswith('///'):
+                product = self.dynamic_libs_lookup.get(can_node, '')
             self.nodes_lookup[can_node] = self.node_id_counter
             first, last = lines.split(";")
             target[str(self.node_id_counter)] = {
@@ -814,7 +820,8 @@ class C_Canonicalizer:
                     "access": scope,
                     "defined": is_defined,
                     "first": first,
-                    "last": last
+                    "last": last,
+                    "product": product
                 },
                 "uri": can_node,
                 "files": [path]
@@ -1010,15 +1017,21 @@ class C_Canonicalizer:
         product, binary, namespace, function, is_static = self._parse_node(
             node)
         forge_product_version = ''
+        dynamic_library = (False, '')
         if product != self.product:
             if binary.endswith('.so') or (binary == '' and not is_static):
+                if binary.endswith('.so'):
+                    dynamic_library = (True, product)
                 product = ''
             if isinstance(product, bytes):
                 product = product.decode("utf-8")
             forge_product_version += '//' + product
-        return '{}/{};{}/{}'.format(
+        uri = '{}/{};{}/{}'.format(
             forge_product_version, binary, namespace, function
         )
+        if dynamic_library[0]:
+            self.dynamic_libs_lookup[uri] = dynamic_library[1]
+        return uri
 
     def _parse_node_string(self, node):
         """We need this function because we may support more formats in the

@@ -1,1 +1,440 @@
-{"forge": "debian", "release": "", "product": "anna", "version": "1.71", "source": "", "architecture": "amd64", "generator": "", "timestamp": "1551808677", "nodes": 18, "depset": [{"product": "libdebconfclient0", "forge": "debian", "architectures": [], "constraints": "", "dependency_type": "Depends", "is_virtual": false, "alternatives": []}, {"product": "cdebconf", "forge": "debian", "architectures": [], "constraints": "", "dependency_type": "Depends", "is_virtual": false, "alternatives": []}, {"product": "libdebian-installer4", "forge": "debian", "architectures": [], "constraints": "[0.110,)", "dependency_type": "Depends", "is_virtual": false, "alternatives": []}, {"product": "libc6", "forge": "debian", "architectures": [], "constraints": "[2.24,)", "dependency_type": "Depends", "is_virtual": false, "alternatives": []}], "build_depset": [{"product": "dpkg-dev", "forge": "debian", "architectures": [], "constraints": "[1.15.7,)", "dependency_type": "Build-Depends", "is_virtual": false, "alternatives": []}, {"product": "libdebconfclient0-dev", "forge": "debian", "architectures": [], "constraints": "[0.46,)", "dependency_type": "Build-Depends", "is_virtual": false, "alternatives": []}, {"product": "debhelper", "forge": "debian", "architectures": [], "constraints": "[9,)", "dependency_type": "Build-Depends", "is_virtual": false, "alternatives": []}, {"product": "libdebian-installer4-dev", "forge": "debian", "architectures": [], "constraints": "[0.109,)", "dependency_type": "Build-Depends", "is_virtual": false, "alternatives": []}], "undeclared_depset": [{"forge": "debian", "product": "libc6-dev", "architectures": "", "constraints": "", "dependency_type": "", "is_virtual": false, "alternatives": []}, {"forge": "debian", "product": "libgcc-8-dev", "architectures": "", "constraints": "", "dependency_type": "", "is_virtual": false, "alternatives": []}], "graph": {"externalCalls": [["4", "12", {}], ["11", "13", {}], ["10", "17", {}]], "internalCalls": [["2", "1", {}], ["5", "3", {}], ["11", "6", {}], ["11", "8", {}], ["11", "9", {}]], "resolvedCalls": [["11", "14", {}], ["11", "15", {}], ["11", "16", {}]]}, "functions": {"internal": {"binaries": {"anna": {"methods": {"0": {"metadata": {"access": "public", "defined": true, "first": "77", "last": "95"}, "uri": "/anna;C/is_installed()", "files": ["util.c"]}, "1": {"metadata": {"access": "public", "defined": true, "first": "30", "last": "40"}, "uri": "/anna;C/xasprintf()", "files": ["util.c"]}, "2": {"metadata": {"access": "public", "defined": true, "first": "125", "last": "132"}, "uri": "/anna;C/retriever_cleanup()", "files": ["retriever.c"]}, "3": {"metadata": {"access": "public", "defined": true, "first": "288", "last": "310"}, "uri": "/anna;C/drop_excludes()", "files": ["util.c"]}, "4": {"metadata": {"access": "public", "defined": true, "first": "263", "last": "285"}, "uri": "/anna;C/take_includes()", "files": ["util.c"]}, "6": {"metadata": {"access": "public", "defined": true, "first": "33", "last": "43"}, "uri": "/anna;C/get_retriever()", "files": ["retriever.c"]}, "8": {"metadata": {"access": "public", "defined": true, "first": "11", "last": "31"}, "uri": "/anna;C/get_packages()", "files": ["anna.c"]}, "11": {"metadata": {"access": "public", "defined": true, "first": "414", "last": "566"}, "uri": "/anna;C/main()", "files": ["anna.c"]}}}}, "static_functions": {"methods": {"5": {"metadata": {"access": "static", "defined": true, "first": "71", "last": "235"}, "uri": "/;./anna.c;choose_modules()", "files": ["anna.c"]}, "7": {"metadata": {"access": "static", "defined": true, "first": "96", "last": "108"}, "uri": "/;./util.c;choice_strcpy()", "files": ["util.c"]}, "9": {"metadata": {"access": "static", "defined": true, "first": "244", "last": "413"}, "uri": "/;./anna.c;install_modules()", "files": ["anna.c"]}, "10": {"metadata": {"access": "static", "defined": true, "first": "12", "last": "16"}, "uri": "/;./util.c;oom_die()", "files": ["util.c"]}}}}, "external": {"products": {"libdebian-installer4-dev": {"methods": {"16": {"metadata": {"access": "public", "defined": false, "first": "33", "last": "33"}, "uri": "//libdebian-installer4-dev/libdebian-installer.a;C/di_system_init()", "files": ["/usr/include/debian-installer/system/utils.h"]}}}}, "undefined": {"methods": {"12": {"metadata": {"access": "public", "defined": true, "first": "255", "last": "266"}, "uri": "///libc.so;C/fgets()", "files": ["/usr/include/x86_64-linux-gnu/bits/stdio2.h"]}, "13": {"metadata": {"access": "public", "defined": false, "first": "61", "last": "61"}, "uri": "///libdebconfclient.so;C/debconfclient_new()", "files": ["/usr/include/cdebconf/debconfclient.h"]}, "17": {"metadata": {"access": "public", "defined": false, "first": "632", "last": "632"}, "uri": "///libc.so;C/fputs()", "files": ["/usr/include/stdio.h"]}}}, "static_functions": {"libdebconfclient0-dev": {"methods": {"14": {"metadata": {"access": "static", "defined": true, "first": "105", "last": "108"}, "uri": "//libdebconfclient0-dev/;%2Fusr%2Finclude%2Fcdebconf/debconfclient.h;debconf_capb()", "files": ["/usr/include/cdebconf/debconfclient.h"]}}}, "libdebian-installer4-dev": {"methods": {"15": {"metadata": {"access": "static", "defined": true, "first": "87", "last": "90"}, "uri": "//libdebian-installer4-dev/;%2Fusr%2Finclude%2Fdebian-installer%2Fsystem/packages.h;di_system_packages_status_read_file()", "files": ["/usr/include/debian-installer/system/packages.h"]}}}}}}}
+{
+  "forge": "debian",
+  "release": "",
+  "product": "anna",
+  "version": "1.71",
+  "source": "",
+  "architecture": "amd64",
+  "generator": "",
+  "timestamp": "1551808677",
+  "nodes": 18,
+  "depset": [
+    {
+      "product": "libdebconfclient0",
+      "forge": "debian",
+      "architectures": [],
+      "constraints": "",
+      "dependency_type": "Depends",
+      "is_virtual": false,
+      "alternatives": []
+    },
+    {
+      "product": "cdebconf",
+      "forge": "debian",
+      "architectures": [],
+      "constraints": "",
+      "dependency_type": "Depends",
+      "is_virtual": false,
+      "alternatives": []
+    },
+    {
+      "product": "libdebian-installer4",
+      "forge": "debian",
+      "architectures": [],
+      "constraints": "[0.110,)",
+      "dependency_type": "Depends",
+      "is_virtual": false,
+      "alternatives": []
+    },
+    {
+      "product": "libc6",
+      "forge": "debian",
+      "architectures": [],
+      "constraints": "[2.24,)",
+      "dependency_type": "Depends",
+      "is_virtual": false,
+      "alternatives": []
+    }
+  ],
+  "build_depset": [
+    {
+      "product": "dpkg-dev",
+      "forge": "debian",
+      "architectures": [],
+      "constraints": "[1.15.7,)",
+      "dependency_type": "Build-Depends",
+      "is_virtual": false,
+      "alternatives": []
+    },
+    {
+      "product": "libdebconfclient0-dev",
+      "forge": "debian",
+      "architectures": [],
+      "constraints": "[0.46,)",
+      "dependency_type": "Build-Depends",
+      "is_virtual": false,
+      "alternatives": []
+    },
+    {
+      "product": "debhelper",
+      "forge": "debian",
+      "architectures": [],
+      "constraints": "[9,)",
+      "dependency_type": "Build-Depends",
+      "is_virtual": false,
+      "alternatives": []
+    },
+    {
+      "product": "libdebian-installer4-dev",
+      "forge": "debian",
+      "architectures": [],
+      "constraints": "[0.109,)",
+      "dependency_type": "Build-Depends",
+      "is_virtual": false,
+      "alternatives": []
+    }
+  ],
+  "undeclared_depset": [
+    {
+      "forge": "debian",
+      "product": "libc6-dev",
+      "architectures": "",
+      "constraints": "",
+      "dependency_type": "",
+      "is_virtual": false,
+      "alternatives": []
+    },
+    {
+      "forge": "debian",
+      "product": "libgcc-8-dev",
+      "architectures": "",
+      "constraints": "",
+      "dependency_type": "",
+      "is_virtual": false,
+      "alternatives": []
+    }
+  ],
+  "graph": {
+    "externalCalls": [
+      [
+        "4",
+        "12",
+        {}
+      ],
+      [
+        "11",
+        "13",
+        {}
+      ],
+      [
+        "10",
+        "17",
+        {}
+      ]
+    ],
+    "internalCalls": [
+      [
+        "2",
+        "1",
+        {}
+      ],
+      [
+        "5",
+        "3",
+        {}
+      ],
+      [
+        "11",
+        "6",
+        {}
+      ],
+      [
+        "11",
+        "8",
+        {}
+      ],
+      [
+        "11",
+        "9",
+        {}
+      ]
+    ],
+    "resolvedCalls": [
+      [
+        "11",
+        "14",
+        {}
+      ],
+      [
+        "11",
+        "15",
+        {}
+      ],
+      [
+        "11",
+        "16",
+        {}
+      ]
+    ]
+  },
+  "functions": {
+    "internal": {
+      "binaries": {
+        "anna": {
+          "methods": {
+            "0": {
+              "metadata": {
+                "access": "public",
+                "defined": true,
+                "first": "77",
+                "last": "95",
+                "product": ""
+              },
+              "uri": "/anna;C/is_installed()",
+              "files": [
+                "util.c"
+              ]
+            },
+            "1": {
+              "metadata": {
+                "access": "public",
+                "defined": true,
+                "first": "30",
+                "last": "40",
+                "product": ""
+              },
+              "uri": "/anna;C/xasprintf()",
+              "files": [
+                "util.c"
+              ]
+            },
+            "2": {
+              "metadata": {
+                "access": "public",
+                "defined": true,
+                "first": "125",
+                "last": "132",
+                "product": ""
+              },
+              "uri": "/anna;C/retriever_cleanup()",
+              "files": [
+                "retriever.c"
+              ]
+            },
+            "3": {
+              "metadata": {
+                "access": "public",
+                "defined": true,
+                "first": "288",
+                "last": "310",
+                "product": ""
+              },
+              "uri": "/anna;C/drop_excludes()",
+              "files": [
+                "util.c"
+              ]
+            },
+            "4": {
+              "metadata": {
+                "access": "public",
+                "defined": true,
+                "first": "263",
+                "last": "285",
+                "product": ""
+              },
+              "uri": "/anna;C/take_includes()",
+              "files": [
+                "util.c"
+              ]
+            },
+            "6": {
+              "metadata": {
+                "access": "public",
+                "defined": true,
+                "first": "33",
+                "last": "43",
+                "product": ""
+              },
+              "uri": "/anna;C/get_retriever()",
+              "files": [
+                "retriever.c"
+              ]
+            },
+            "8": {
+              "metadata": {
+                "access": "public",
+                "defined": true,
+                "first": "11",
+                "last": "31",
+                "product": ""
+              },
+              "uri": "/anna;C/get_packages()",
+              "files": [
+                "anna.c"
+              ]
+            },
+            "11": {
+              "metadata": {
+                "access": "public",
+                "defined": true,
+                "first": "414",
+                "last": "566",
+                "product": ""
+              },
+              "uri": "/anna;C/main()",
+              "files": [
+                "anna.c"
+              ]
+            }
+          }
+        }
+      },
+      "static_functions": {
+        "methods": {
+          "5": {
+            "metadata": {
+              "access": "static",
+              "defined": true,
+              "first": "71",
+              "last": "235",
+              "product": ""
+            },
+            "uri": "/;./anna.c;choose_modules()",
+            "files": [
+              "anna.c"
+            ]
+          },
+          "7": {
+            "metadata": {
+              "access": "static",
+              "defined": true,
+              "first": "96",
+              "last": "108",
+              "product": ""
+            },
+            "uri": "/;./util.c;choice_strcpy()",
+            "files": [
+              "util.c"
+            ]
+          },
+          "9": {
+            "metadata": {
+              "access": "static",
+              "defined": true,
+              "first": "244",
+              "last": "413",
+              "product": ""
+            },
+            "uri": "/;./anna.c;install_modules()",
+            "files": [
+              "anna.c"
+            ]
+          },
+          "10": {
+            "metadata": {
+              "access": "static",
+              "defined": true,
+              "first": "12",
+              "last": "16",
+              "product": ""
+            },
+            "uri": "/;./util.c;oom_die()",
+            "files": [
+              "util.c"
+            ]
+          }
+        }
+      }
+    },
+    "external": {
+      "products": {
+        "libdebian-installer4-dev": {
+          "methods": {
+            "16": {
+              "metadata": {
+                "access": "public",
+                "defined": false,
+                "first": "33",
+                "last": "33",
+                "product": ""
+              },
+              "uri": "//libdebian-installer4-dev/libdebian-installer.a;C/di_system_init()",
+              "files": [
+                "/usr/include/debian-installer/system/utils.h"
+              ]
+            }
+          }
+        }
+      },
+      "undefined": {
+        "methods": {
+          "12": {
+            "metadata": {
+              "access": "public",
+              "defined": true,
+              "first": "255",
+              "last": "266",
+              "product": "libc6"
+            },
+            "uri": "///libc.so;C/fgets()",
+            "files": [
+              "/usr/include/x86_64-linux-gnu/bits/stdio2.h"
+            ]
+          },
+          "13": {
+            "metadata": {
+              "access": "public",
+              "defined": false,
+              "first": "61",
+              "last": "61",
+              "product": "libdebconfclient0"
+            },
+            "uri": "///libdebconfclient.so;C/debconfclient_new()",
+            "files": [
+              "/usr/include/cdebconf/debconfclient.h"
+            ]
+          },
+          "17": {
+            "metadata": {
+              "access": "public",
+              "defined": false,
+              "first": "632",
+              "last": "632",
+              "product": "libc6"
+            },
+            "uri": "///libc.so;C/fputs()",
+            "files": [
+              "/usr/include/stdio.h"
+            ]
+          }
+        }
+      },
+      "static_functions": {
+        "libdebconfclient0-dev": {
+          "methods": {
+            "14": {
+              "metadata": {
+                "access": "static",
+                "defined": true,
+                "first": "105",
+                "last": "108",
+                "product": ""
+              },
+              "uri": "//libdebconfclient0-dev/;%2Fusr%2Finclude%2Fcdebconf/debconfclient.h;debconf_capb()",
+              "files": [
+                "/usr/include/cdebconf/debconfclient.h"
+              ]
+            }
+          }
+        },
+        "libdebian-installer4-dev": {
+          "methods": {
+            "15": {
+              "metadata": {
+                "access": "static",
+                "defined": true,
+                "first": "87",
+                "last": "90",
+                "product": ""
+              },
+              "uri": "//libdebian-installer4-dev/;%2Fusr%2Finclude%2Fdebian-installer%2Fsystem/packages.h;di_system_packages_status_read_file()",
+              "files": [
+                "/usr/include/debian-installer/system/packages.h"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
